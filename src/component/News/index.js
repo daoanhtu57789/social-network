@@ -12,12 +12,12 @@ import FavoriteIcon from "@material-ui/icons/Favorite";
 import ShareIcon from "@material-ui/icons/Share";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
-import CommentIcon from '@material-ui/icons/Comment';
+import CommentIcon from "@material-ui/icons/Comment";
 //css
 import { withStyles } from "@material-ui/core/styles";
 import styles from "./styles";
 //check dữ liệu nhận vào
-import propTypes from 'prop-types';
+import propTypes from "prop-types";
 class News extends Component {
   state = {
     expanded: false
@@ -28,16 +28,12 @@ class News extends Component {
     });
   };
   render() {
-    const { classes,news } = this.props;
+    const { classes, news } = this.props;
     const { expanded } = this.state;
     return (
       <Card className={classes.root}>
         <CardHeader
-          avatar={
-            <Avatar
-                src={news.image}
-            />
-          }
+          avatar={<Avatar src={news.image} />}
           action={
             <IconButton aria-label="settings">
               <MoreVertIcon />
@@ -46,22 +42,30 @@ class News extends Component {
           title={news.nameUser}
           subheader={news.createdAt}
         />
-        <CardMedia
-          className={classes.media}
-          image="/static/images/cards/paella.jpg"
-          title="Paella dish"
-        />
         <CardContent>
           <Typography variant="body2" color="textSecondary" component="p">
             {news.content}
           </Typography>
         </CardContent>
+        {/* <iframe
+          title={news.link}
+          width="600"
+          height="400"
+          src={news.link}
+          frameBorder="0"
+        ></iframe> */}
+        {news.link?<CardMedia
+          className={classes.media}
+          image={news.link}
+          title="Paella dish"
+        />:''}
+
         <CardActions disableSpacing>
           <IconButton aria-label="add to favorites">
             <FavoriteIcon /> {news.likeCount}
           </IconButton>
           <IconButton aria-label="add to comment">
-            <CommentIcon /> 
+            <CommentIcon /> {news.commentCount}
           </IconButton>
           <IconButton aria-label="share">
             <ShareIcon /> {news.shareCount}
@@ -80,11 +84,11 @@ class News extends Component {
       </Card>
     );
   }
-};
+}
 
 News.propTypes = {
-  classes : propTypes.object,
-  news : propTypes.object
-}
+  classes: propTypes.object,
+  news: propTypes.object
+};
 
 export default withStyles(styles)(News);

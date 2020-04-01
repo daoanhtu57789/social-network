@@ -1,3 +1,5 @@
+import firebase from 'firebase';
+
 const firebaseConfig = {
     apiKey: "AIzaSyCehnGPglgsGUCJUSf0xrdPz70RJPDfM3w",
     authDomain: "zero-social-43e41.firebaseapp.com",
@@ -8,3 +10,8 @@ const firebaseConfig = {
     appId: "1:422023986715:web:71a857e066b4135187c2be",
     measurementId: "G-X3T21RDGLH"
 };
+
+  // Initialize Firebase
+const fire = firebase.initializeApp(firebaseConfig);
+
+export default fire;

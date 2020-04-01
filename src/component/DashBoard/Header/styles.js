@@ -27,7 +27,8 @@ const styles = theme => ({
     [theme.breakpoints.up("sm")]: {
       marginLeft: theme.spacing(3),
       width: "auto"
-    }
+    },
+    marginBottom:'5px'
   },
   searchIcon: {
     padding: theme.spacing(0, 2),

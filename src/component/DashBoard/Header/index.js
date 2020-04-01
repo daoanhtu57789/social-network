@@ -107,8 +107,8 @@ class Header extends Component {
       </Menu>
     );
     return (
-      <div className={classes.grow}>
-        <AppBar position="fixed">
+      <div>
+        <AppBar style={{ height: "50px" }} position="fixed">
           <Toolbar>
             {/* Dấu gạch ngang */}
             <div>
@@ -117,8 +117,9 @@ class Header extends Component {
                 className={classes.menuButton}
                 color="inherit"
                 aria-label="open drawer"
+                size="small"
               >
-                <MenuIcon />
+                <MenuIcon fontSize="small" />
               </IconButton>
             </div>
             <div>
@@ -128,9 +129,10 @@ class Header extends Component {
             </div>
             <div className={classes.search}>
               <div className={classes.searchIcon}>
-                <SearchIcon />
+                <SearchIcon fontSize="small" />
               </div>
               <InputBase
+                fontSize="small"
                 placeholder="Search…"
                 classes={{
                   root: classes.inputRoot,
@@ -146,12 +148,14 @@ class Header extends Component {
                 aria-controls={menuId}
                 aria-haspopup="true"
                 color="inherit"
+                size="small"
               >
                 <Avatar
                   alt="Đào Anh Tú"
                   src="https://azpet.com.vn/wp-content/uploads/2019/01/Cho-Corgi-7.jpg"
+                  style={{marginBottom:'5px'}}
                 />
-                <Typography style={{ fontSize: "20px" }}>
+                <Typography style={{ fontSize: "17px" }}>
                   {this.renderNameUser(nameUser)}
                 </Typography>
               </IconButton>

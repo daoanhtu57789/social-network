@@ -1,7 +1,9 @@
 import { fade } from "@material-ui/core/styles";
 const styles = theme => ({
   grow: {
-    flexGrow: 1
+    flexGrow: 1,
+    positison : 'fixed',
+    border : '1px black solid'
   },
   menuButton: {
     marginRight: theme.spacing(2)

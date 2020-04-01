@@ -1,7 +1,7 @@
 const styles = (theme) =>({
     root: {
         maxWidth: 600,
-        margin:'auto'
+        marginTop: 60
       },
       media: {
         height: 0,

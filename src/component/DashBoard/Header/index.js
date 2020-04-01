@@ -10,7 +10,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Menu from "@material-ui/core/Menu";
 import MenuIcon from "@material-ui/icons/Menu";
 import SearchIcon from "@material-ui/icons/Search";
-import AccountCircle from "@material-ui/icons/AccountCircle";
+import Avatar from "@material-ui/core/Avatar";
 import MailIcon from "@material-ui/icons/Mail";
 import NotificationsIcon from "@material-ui/icons/Notifications";
 import HomeIcon from "@material-ui/icons/Home";
@@ -18,6 +18,7 @@ import FacebookIcon from "@material-ui/icons/Facebook";
 import GitHubIcon from "@material-ui/icons/GitHub";
 import InstagramIcon from "@material-ui/icons/Instagram";
 import ArrowDropDownCircleIcon from "@material-ui/icons/ArrowDropDownCircle";
+import PersonAddIcon from "@material-ui/icons/PersonAdd";
 //css
 import styles from "./styles";
 import { withStyles } from "@material-ui/core/styles";
@@ -52,10 +53,22 @@ class Header extends Component {
       expanded: false
     });
   };
+  //function lấy 6 kí tự đầu của tên
+  renderNameUser = name => {
+    var newName = "";
+    var arrayName = name.split(" ");
+    for (let i = 0; i < arrayName.length; i++) {
+      if (i < 2) {
+        newName += arrayName[i] + " ";
+      }
+    }
+    return newName;
+  };
 
   render() {
     const { classes } = this.props;
     const { anchorEl, isMenuOpen, expanded } = this.state;
+    const nameUser = "Đào Anh Tú";
     const renderMenu = (
       <Menu
         anchorEl={anchorEl}
@@ -95,19 +108,24 @@ class Header extends Component {
     );
     return (
       <div className={classes.grow}>
-        <AppBar position="static">
+        <AppBar position="fixed">
           <Toolbar>
-            <IconButton
-              edge="start"
-              className={classes.menuButton}
-              color="inherit"
-              aria-label="open drawer"
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography className={classes.title} variant="h6" noWrap>
-              Social Network
-            </Typography>
+            {/* Dấu gạch ngang */}
+            <div>
+              <IconButton
+                edge="start"
+                className={classes.menuButton}
+                color="inherit"
+                aria-label="open drawer"
+              >
+                <MenuIcon />
+              </IconButton>
+            </div>
+            <div>
+              <Typography className={classes.title} variant="h6" noWrap>
+                Zero Social
+              </Typography>
+            </div>
             <div className={classes.search}>
               <div className={classes.searchIcon}>
                 <SearchIcon />
@@ -121,23 +139,40 @@ class Header extends Component {
                 inputProps={{ "aria-label": "search" }}
               />
             </div>
+            <div>
+              <IconButton
+                edge="end"
+                aria-label="account of current user"
+                aria-controls={menuId}
+                aria-haspopup="true"
+                color="inherit"
+              >
+                <Avatar
+                  alt="Đào Anh Tú"
+                  src="https://azpet.com.vn/wp-content/uploads/2019/01/Cho-Corgi-7.jpg"
+                />
+                <Typography style={{ fontSize: "20px" }}>
+                  {this.renderNameUser(nameUser)}
+                </Typography>
+              </IconButton>
+            </div>
             <div className={classes.grow} />
-            <IconButton
-              edge="end"
-              aria-label="account of current user"
-              aria-controls={menuId}
-              aria-haspopup="true"
-              onClick={this.handleProfileMenuOpen}
-              color="inherit"
-            >
-              <AccountCircle />
-            </IconButton>
-            <div className={classes.grow} />
-            {/* icon mid */}
             <div>
               <IconButton color="inherit">
                 <Badge color="secondary">
-                  <HomeIcon />
+                  <HomeIcon />{" "}
+                  <span style={{ fontSize: "15px", lineHeight: "30px" }}>
+                    Trang Chủ
+                  </span>
+                </Badge>
+              </IconButton>
+            </div>
+            {/* icon mid */}
+            <div className={classes.grow} />
+            <div>
+              <IconButton color="inherit">
+                <Badge badgeContent={4} color="secondary">
+                  <PersonAddIcon />
                 </Badge>
               </IconButton>
               <IconButton aria-label="show 4 new mails" color="inherit">
@@ -154,7 +189,6 @@ class Header extends Component {
                 </Badge>
               </IconButton>
             </div>
-
             <div className={classes.grow} />
             {/* flex về cuối*/}
             <div className={classes.sectionDesktop}>
@@ -191,7 +225,6 @@ class Header extends Component {
                   </a>
                 </Badge>
               </IconButton>
-
               <IconButton
                 edge="end"
                 aria-label="account of current user"

@@ -5,7 +5,6 @@ import CardHeader from "@material-ui/core/CardHeader";
 import CardMedia from "@material-ui/core/CardMedia";
 import CardContent from "@material-ui/core/CardContent";
 import CardActions from "@material-ui/core/CardActions";
-import Collapse from "@material-ui/core/Collapse";
 import Avatar from "@material-ui/core/Avatar";
 import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
@@ -13,9 +12,12 @@ import FavoriteIcon from "@material-ui/icons/Favorite";
 import ShareIcon from "@material-ui/icons/Share";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
+import CommentIcon from '@material-ui/icons/Comment';
 //css
 import { withStyles } from "@material-ui/core/styles";
 import styles from "./styles";
+//check dữ liệu nhận vào
+import propTypes from 'prop-types';
 class News extends Component {
   state = {
     expanded: false
@@ -26,23 +28,23 @@ class News extends Component {
     });
   };
   render() {
-    const { classes } = this.props;
+    const { classes,news } = this.props;
     const { expanded } = this.state;
     return (
       <Card className={classes.root}>
         <CardHeader
           avatar={
-            <Avatar aria-label="recipe" className={classes.avatar}>
-              R
-            </Avatar>
+            <Avatar
+                src={news.image}
+            />
           }
           action={
             <IconButton aria-label="settings">
               <MoreVertIcon />
             </IconButton>
           }
-          title="Shrimp and Chorizo Paella"
-          subheader="September 14, 2016"
+          title={news.nameUser}
+          subheader={news.createdAt}
         />
         <CardMedia
           className={classes.media}
@@ -51,17 +53,18 @@ class News extends Component {
         />
         <CardContent>
           <Typography variant="body2" color="textSecondary" component="p">
-            This impressive paella is a perfect party dish and a fun meal to
-            cook together with your guests. Add 1 cup of frozen peas along with
-            the mussels, if you like.
+            {news.content}
           </Typography>
         </CardContent>
         <CardActions disableSpacing>
           <IconButton aria-label="add to favorites">
-            <FavoriteIcon />
+            <FavoriteIcon /> {news.likeCount}
+          </IconButton>
+          <IconButton aria-label="add to comment">
+            <CommentIcon /> 
           </IconButton>
           <IconButton aria-label="share">
-            <ShareIcon />
+            <ShareIcon /> {news.shareCount}
           </IconButton>
           <IconButton
             className={clsx(classes.expand, {
@@ -74,12 +77,14 @@ class News extends Component {
             <ExpandMoreIcon />
           </IconButton>
         </CardActions>
-        <Collapse in={expanded} timeout="auto" unmountOnExit>
-          <CardContent></CardContent>
-        </Collapse>
       </Card>
     );
   }
+};
+
+News.propTypes = {
+  classes : propTypes.object,
+  news : propTypes.object
 }
 
 export default withStyles(styles)(News);

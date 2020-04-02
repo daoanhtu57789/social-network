@@ -55,7 +55,6 @@ const reducer = (state = initialState,action) =>{
         //lấy dữ liệu 
         case newsConstants.FETCH_NEWS_SUCCESS :{
             const {data} = action.payload;
-            console.log(data,"reducer-new");
             return {
                 ...state,
                 newsList : data

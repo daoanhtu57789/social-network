@@ -22,8 +22,13 @@ import PersonAddIcon from "@material-ui/icons/PersonAdd";
 //css
 import styles from "./styles";
 import { withStyles } from "@material-ui/core/styles";
+import propTypes from "prop-types";
 //clsx để gộp nhiều class
 import clsx from "clsx";
+//firebase
+import fire from './../../../config/Fire';
+//
+import {withRouter} from 'react-router-dom';
 
 //biến global
 const menuId = "primary-search-account-menu";
@@ -52,6 +57,13 @@ class Header extends Component {
       isMenuOpen: false,
       expanded: false
     });
+  };
+
+  //logout
+  handleLogout = () => {
+    const { history } = this.props;
+    fire.auth().signOut();
+    history.push("/login");
   };
   //function lấy 6 kí tự đầu của tên
   renderNameUser = name => {
@@ -250,6 +262,12 @@ class Header extends Component {
       </div>
     );
   }
-}
+};
 
-export default withStyles(styles)(Header);
+//check props nhận vào
+Header.propTypes = {
+  classes: propTypes.object,
+  history: propTypes.object,
+};
+
+export default withStyles(styles)(withRouter(Header));

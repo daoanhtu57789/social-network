@@ -7,13 +7,14 @@ import styles from './styles';
 import {withStyles} from '@material-ui/core/styles';
 class DashBoard extends Component {
     render() {
+        const {children} = this.props;
         return (
             <div>
                 <div>
                     <Header />  
                 </div>
                 <div>
-                    <NewsBoard />
+                    {children}
                 </div>  
             </div>
         );

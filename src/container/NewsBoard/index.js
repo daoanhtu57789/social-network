@@ -2,7 +2,7 @@ import React, { Component } from "react";
 //css
 import styles from "./styles";
 import { withStyles } from "@material-ui/core/styles";
-import { Button, Grid, Avatar, TextField } from "@material-ui/core";
+import { Button, Grid, Avatar } from "@material-ui/core";
 import Card from "@material-ui/core/Card";
 import AddIcon from "@material-ui/icons/Add";
 import IconButton from "@material-ui/core/IconButton";
@@ -18,6 +18,11 @@ import propTypes from "prop-types";
 import * as newsActions from "./../../actions/news";
 //firebase
 import fire from "./../../config/Fire";
+//redux-form
+import { Field, reduxForm } from "redux-form";
+import renderTextField from "./../../component/FormHelper/TextField/index";
+//redux
+import { compose } from "redux";
 
 class NewsBoard extends Component {
   constructor(props) {
@@ -68,7 +73,6 @@ class NewsBoard extends Component {
         fetchNewsFailed(err);
       });
   }
-
   //////
   renderNewsList = () => {
     const { newsList } = this.props;
@@ -88,65 +92,76 @@ class NewsBoard extends Component {
     }
     return xhtml;
   };
+  //Thêm news
+  handleSubmitForm = data => {};
 
   render() {
-    const { classes } = this.props;
+    const { classes, handleSubmit } = this.props;
     return (
       <Grid container spacing={2} style={{ paddingTop: "10px" }}>
         <Grid item md={3} xs={12}></Grid>
         <Grid item md={6} xs={12}>
-          <Card className={classes.cardContent}>
-            <Avatar
-              style={{ margin: "15px 0 0 15px" }}
-              src="https://tunglocpet.com/wp-content/uploads/2017/10/cho-corgi-pembroke-tunglocpet-03.jpg"
-            />
+          <form onSubmit={handleSubmit(this.handleSubmitForm)}>
+            <Card className={classes.cardContent}>
+              <Avatar
+                style={{ margin: "15px 0 0 15px" }}
+                src="https://tunglocpet.com/wp-content/uploads/2017/10/cho-corgi-pembroke-tunglocpet-03.jpg"
+              />
 
-            <TextField
-              id="outlined-basic"
-              variant="outlined"
-              className={classes.formContent}
-            />
+              <Field
+                id="content"
+                name="content"
+                component={renderTextField}
+                type="text"
+                variant="outlined"
+                className={classes.textField}
+                placeholder="Hãy Cho Mọi Người Biết Bạn Đang Nghĩ Gì?"
+                multiline
+                rows="4"
+              />
 
-            <Grid container spacing={2} style={{ paddingTop: "10px" }}>
-              <Grid item md={3} xs={12}></Grid>
-              <Grid item md={5} xs={12}>
-                <progress
-                  value={this.state.progress}
-                  max="100"
-                  style={{ marginBottom: "5px", height: "20px" }}
-                />
+              <Grid container spacing={2} style={{ paddingTop: "10px" }}>
+                <Grid item md={2} xs={12}></Grid>
+                <Grid item md={2} xs={12}></Grid>
+                <Grid item md={8} xs={12}>
+                  <div style={{ marginLeft: "70px" }}>
+                    <progress
+                      value={this.state.progress}
+                      max="100"
+                      style={{ marginBottom: "5px", height: "20px" }}
+                    />
 
-                <input
-                  className={classes.input}
-                  id="icon-button-file"
-                  type="file"
-                  onChange={this.handleChange}
-                />
-                <label htmlFor="icon-button-file">
-                  <IconButton
-                    style={{ marginTop: "-10px" }}
-                    color="primary"
-                    aria-label="upload picture"
-                    component="span"
-                  >
-                    <PhotoCamera fontSize="large" />
-                  </IconButton>
-                </label>
+                    <input
+                      className={classes.input}
+                      id="icon-button-file"
+                      type="file"
+                      onChange={this.handleChange}
+                    />
+                    <label htmlFor="icon-button-file">
+                      <IconButton
+                        style={{ marginTop: "-10px" }}
+                        color="primary"
+                        aria-label="upload picture"
+                        component="span"
+                      >
+                        <PhotoCamera fontSize="large" />
+                      </IconButton>
+                    </label>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      className={classes.button}
+                      size="small"
+                      type="submit"
+                    >
+                      <AddIcon fontSize="small" />
+                      Đăng
+                    </Button>
+                  </div>
+                </Grid>
               </Grid>
-              <Grid item md={4} xs={12}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  className={classes.button}
-                  size="small"
-                  // onClick={() => this.openFormLink({ file: false, link: true })}
-                >
-                  <AddIcon fontSize="small" />
-                  Đăng
-                </Button>
-              </Grid>
-            </Grid>
-          </Card>
+            </Card>
+          </form>
           {this.renderNewsList()}
         </Grid>
         <Grid item md={3} xs={12}></Grid>
@@ -158,7 +173,7 @@ class NewsBoard extends Component {
 NewsBoard.propTypes = {
   classes: propTypes.object,
   newsList: propTypes.array,
-  newsActionsCreator: propTypes.shape ({
+  newsActionsCreator: propTypes.shape({
     fetchNewsSuccess: propTypes.func,
     fetchNewsFailed: propTypes.func
   })
@@ -176,7 +191,14 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(withStyles(styles)(NewsBoard));
+//kết nối với redux-form
+const FORM_NAME = "TASK_MANAGEMENT";
+const withReduxForm = reduxForm({
+  form: FORM_NAME
+});
+
+export default compose(
+  withStyles(styles),
+  connect(mapStateToProps, mapDispatchToProps),
+  withReduxForm
+)(NewsBoard);

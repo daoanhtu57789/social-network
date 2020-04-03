@@ -2,7 +2,7 @@ import React, { Component } from "react";
 //css
 import { withStyles } from "@material-ui/core/styles";
 import styles from "./styles";
-import AppIcon from "./../../assets/images/corgi.jpg";
+import AppIcon from "./../../assets/images/zero-social.jpg";
 import { Link } from "react-router-dom";
 
 import { withRouter } from "react-router-dom";
@@ -16,6 +16,9 @@ import { CircularProgress } from "@material-ui/core";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import * as uiActions from "./../../actions/ui";
+import * as userActions from "./../../actions/user";
+//check props
+import propTypes from "prop-types";
 //firebase
 import fire from "./../../config/Fire";
 class Login extends Component {
@@ -41,10 +44,31 @@ class Login extends Component {
     const { history } = this.props;
     fire.auth().onAuthStateChanged(user => {
       if (user) {
-        localStorage.setItem('user',user.email);
+        localStorage.setItem("user", user.email);
+        const { userActionsCreator } = this.props;
+        const { fetchCurrentUser } = userActionsCreator;
+        //lấy dữ liệu trên firebase có database là videos
+        fire
+          .firestore()
+          .collection("user")
+          .where("email", "==", user.email)
+          .get()
+          .then(data => {
+            data.forEach(doc => {
+              let currentUser = {
+                userId: doc.id,
+                email: doc.data().email,
+                gender: doc.data().gender,
+                nameUser: doc.data().nameUser,
+                date: doc.data().date,
+                linkImage: doc.data().linkImage
+              };
+              fetchCurrentUser(currentUser);
+            });
+          });
         history.push("/home");
       } else {
-        localStorage.setItem('user',null);
+        localStorage.setItem("user", null);
         history.push("/login");
       }
     });
@@ -61,6 +85,27 @@ class Login extends Component {
       .then(u => {
         hideLoadingLogin();
         if (history) {
+          const { userActionsCreator } = this.props;
+          const { fetchCurrentUser } = userActionsCreator;
+          //lấy dữ liệu trên firebase có database là videos
+          fire
+            .firestore()
+            .collection("user")
+            .where("email", "==", this.state.email)
+            .get()
+            .then(data => {
+              data.forEach(doc => {
+                let currentUser = {
+                  userId: doc.id,
+                  email: doc.data().email,
+                  gender: doc.data().gender,
+                  nameUser: doc.data().nameUser,
+                  date: doc.data().date,
+                  linkImage: doc.data().linkImage
+                };
+                fetchCurrentUser(currentUser);
+              });
+            });
           history.push("/home");
         }
       })
@@ -107,11 +152,7 @@ class Login extends Component {
               onChange={this.handleChange}
               fullWidth
             />
-            {errors.general && (
-              <Typography variant="body2" className={classes.customError}>
-                {errors.general}
-              </Typography>
-            )}
+    
             <Button
               type="submit"
               variant="contained"
@@ -136,6 +177,17 @@ class Login extends Component {
   }
 }
 
+//kiểm tra lỗi
+Login.propTypes = {
+  showLoadingLogin: propTypes.bool,
+  classes: propTypes.object,
+  history: propTypes.object,
+  uiActionCreators: propTypes.shape({
+    showLoadingLogin: propTypes.func,
+    hideLoadingLogin: propTypes.func
+  })
+};
+
 const mapStateToProps = state => {
   return {
     showLoadingLogin: state.ui.showLoadingLogin
@@ -144,7 +196,8 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    uiActionCreators: bindActionCreators(uiActions, dispatch)
+    uiActionCreators: bindActionCreators(uiActions, dispatch),
+    userActionsCreator: bindActionCreators(userActions, dispatch)
   };
 };
 

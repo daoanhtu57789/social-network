@@ -3,7 +3,8 @@ import React, { Component } from "react";
 import { withStyles } from "@material-ui/core/styles";
 import styles from "./styles";
 import propTypes from "prop-types";
-// import AppIcon from "../../assets/images/corgi.jpg";
+
+import AppIcon from "./../../assets/images/zero-social.jpg";
 import { Link } from "react-router-dom";
 
 //thông báo khi lỗi
@@ -18,6 +19,9 @@ import { compose } from "redux";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
+import WcIcon from "@material-ui/icons/Wc";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Checkbox from "@material-ui/core/Checkbox";
 //kết nối store
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
@@ -28,6 +32,12 @@ import { CircularProgress } from "@material-ui/core";
 import fire from "./../../config/Fire";
 
 class Signup extends Component {
+  state = {
+    nam: false,
+    nu: false,
+    checkednam: false,
+    checkednu: false
+  };
   handleSubmit = data => {
     const { uiActionCreators, userActionCreators } = this.props;
     const { showLoadingSignup, hideLoadingSignup } = uiActionCreators;
@@ -39,13 +49,20 @@ class Signup extends Component {
         .createUserWithEmailAndPassword(data.email, data.password)
         .then(() => {
           const newUser = {
-            email : data.email,
-            password : data.password,
-            nameUser : data.nameUser,
-            date : data.date,
-          }
+            email: data.email,
+            password: data.password,
+            nameUser: data.nameUser,
+            date: data.date,
+            gender: this.state.nam ? "Nam" : "Nữ",
+            linkImage: this.state.nam
+              ? "https://firebasestorage.googleapis.com/v0/b/zero-social-43e41.appspot.com/o/man.png?alt=media&token=23c40781-f7fc-4f16-9114-a6eea27850ee"
+              : "https://firebasestorage.googleapis.com/v0/b/zero-social-43e41.appspot.com/o/woman.jpg?alt=media&token=ee7639c0-fcb3-4f34-9111-1c2242e6802b"
+          };
           fetchCurrentUser(newUser);
-          fire.firestore().collection('user').add(newUser);
+          fire
+            .firestore()
+            .collection("user")
+            .add(newUser);
           hideLoadingSignup();
         })
         .catch(error => {
@@ -53,6 +70,32 @@ class Signup extends Component {
         });
     } else {
       hideLoadingSignup();
+    }
+  };
+
+  handleChange = event => {
+    if (event.target.name === "nam" && event.target.checked) {
+      this.setState({
+        [event.target.name]: event.target.checked,
+        checkednu: true
+      });
+    } else if (event.target.name === "nu" && event.target.checked) {
+      this.setState({
+        [event.target.name]: event.target.checked,
+        checkednam: true
+      });
+    }
+
+    if (event.target.name === "nam" && !event.target.checked) {
+      this.setState({
+        [event.target.name]: event.target.checked,
+        checkednu: false
+      });
+    } else if (event.target.name === "nu" && !event.target.checked) {
+      this.setState({
+        [event.target.name]: event.target.checked,
+        checkednam: false
+      });
     }
   };
 
@@ -69,7 +112,7 @@ class Signup extends Component {
       <Grid container className={classes.form}>
         <Grid item sm />
         <Grid item sm>
-          {/* <img src={AppIcon} alt="corgi" className={classes.image} /> */}
+          <img src={AppIcon} alt="corgi" className={classes.image} />
           <Typography variant="h2" className={classes.pageTitle}>
             SignUp
           </Typography>
@@ -104,6 +147,63 @@ class Signup extends Component {
                 shrink: true
               }}
             />
+            <Grid container>
+              <Grid item sm>
+                {!this.state.checkednam ? (
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        name="nam"
+                        onChange={this.handleChange}
+                        color="primary"
+                      />
+                    }
+                    label="Nam"
+                  />
+                ) : (
+                  <FormControlLabel
+                    disabled
+                    control={
+                      <Checkbox
+                        name="nam"
+                        onChange={this.handleChange}
+                        color="primary"
+                      />
+                    }
+                    label="Nam"
+                  />
+                )}
+              </Grid>
+              <Grid item sm>
+                <WcIcon fontSize="large" />
+              </Grid>
+              <Grid item sm>
+                {!this.state.checkednu ? (
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        name="nu"
+                        onChange={this.handleChange}
+                        color="primary"
+                      />
+                    }
+                    label="Nữ"
+                  />
+                ) : (
+                  <FormControlLabel
+                    disabled
+                    control={
+                      <Checkbox
+                        name="nu"
+                        onChange={this.handleChange}
+                        color="primary"
+                      />
+                    }
+                    label="Nữ"
+                  />
+                )}
+              </Grid>
+            </Grid>
 
             <Field
               id="password"

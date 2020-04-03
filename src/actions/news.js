@@ -19,4 +19,23 @@ export const fetchNewsFailed = (err) => {
     }
 };
 
+//lấy dữ liệu từ firebase
+export const addNewsSuccess = (data) => {
+    return {
+        type : newsConstants.ADD_NEWS_SUCCESS,
+        payload : {
+            data    
+        }
+    }
+};
+
+export const addNewsFailed = (err) => {
+    return {
+        type : newsConstants.ADD_NEWS_FAILED,
+        payload : {
+            err
+        }
+    }
+};
+
 

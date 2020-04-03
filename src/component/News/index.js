@@ -16,6 +16,9 @@ import CommentIcon from "@material-ui/icons/Comment";
 //css
 import { withStyles } from "@material-ui/core/styles";
 import styles from "./styles";
+//chuyển đổi giờ
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime'
 //check dữ liệu nhận vào
 import propTypes from "prop-types";
 class News extends Component {
@@ -28,8 +31,10 @@ class News extends Component {
     });
   };
   render() {
+    dayjs.extend(relativeTime);
     const { classes, news } = this.props;
     const { expanded } = this.state;
+
     return (
       <Card className={classes.root}>
         <CardHeader
@@ -40,21 +45,15 @@ class News extends Component {
             </IconButton>
           }
           title={news.nameUser}
-          subheader={news.createdAt}
+          subheader={dayjs(news.createdAt).fromNow()}
         />
         <CardContent>
           <Typography variant="body2" color="textSecondary" component="p">
             {news.content}
           </Typography>
         </CardContent>
-        {/* <iframe
-          title={news.link}
-          width="600"
-          height="400"
-          src={news.link}
-          frameBorder="0"
-        ></iframe> */}
-        {news.link?<CardMedia
+      
+        {news.link.length > 1?<CardMedia
           className={classes.media}
           image={news.link}
           title="Paella dish"

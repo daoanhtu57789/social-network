@@ -16,6 +16,9 @@ const styles = theme => ({
   textField: {
     width: "100%"
   },
+  progress: {
+    position: 'absolute'
+  },
 });
 
 export default styles;

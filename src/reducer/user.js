@@ -1,7 +1,14 @@
 import * as userConstants from './../constants/user';
 
 const initialState = {
-    currentUser : null
+    currentUser : {
+        userId : '',
+        email : '',
+        gender : '',
+        nameUser : '',
+        date : '',
+        linkImage : ''
+    }
 };
 
 const reducer = (state = initialState,action) =>{

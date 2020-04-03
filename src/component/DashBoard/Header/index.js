@@ -26,9 +26,9 @@ import propTypes from "prop-types";
 //clsx để gộp nhiều class
 import clsx from "clsx";
 //firebase
-import fire from './../../../config/Fire';
+import fire from "./../../../config/Fire";
 //
-import {withRouter} from 'react-router-dom';
+import { withRouter } from "react-router-dom";
 
 //biến global
 const menuId = "primary-search-account-menu";
@@ -61,26 +61,23 @@ class Header extends Component {
 
   //logout
   handleLogout = () => {
+    const {handleLogout} = this.props;
     const { history } = this.props;
     fire.auth().signOut();
+    handleLogout();
     history.push("/login");
   };
   //function lấy 6 kí tự đầu của tên
   renderNameUser = name => {
     var newName = "";
     var arrayName = name.split(" ");
-    for (let i = 0; i < arrayName.length; i++) {
-      if (i < 2) {
-        newName += arrayName[i] + " ";
-      }
-    }
+    newName = arrayName[0];
     return newName;
   };
 
   render() {
-    const { classes } = this.props;
+    const { classes, currentUser } = this.props;
     const { anchorEl, isMenuOpen, expanded } = this.state;
-    const nameUser = "Đào Anh Tú";
     const renderMenu = (
       <Menu
         anchorEl={anchorEl}
@@ -163,12 +160,11 @@ class Header extends Component {
                 size="small"
               >
                 <Avatar
-                  alt="Đào Anh Tú"
-                  src="https://azpet.com.vn/wp-content/uploads/2019/01/Cho-Corgi-7.jpg"
-                  style={{marginBottom:'5px'}}
+                  src={currentUser.linkImage}
+                  style={{ marginBottom: "5px" }}
                 />
                 <Typography style={{ fontSize: "17px" }}>
-                  {this.renderNameUser(nameUser)}
+                  {this.renderNameUser(currentUser.nameUser)}
                 </Typography>
               </IconButton>
             </div>
@@ -262,12 +258,14 @@ class Header extends Component {
       </div>
     );
   }
-};
+}
 
 //check props nhận vào
 Header.propTypes = {
   classes: propTypes.object,
   history: propTypes.object,
+  currentUser: propTypes.object,
+  handleLogout : propTypes.func
 };
 
 export default withStyles(styles)(withRouter(Header));

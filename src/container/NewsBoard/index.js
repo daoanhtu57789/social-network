@@ -16,10 +16,12 @@ import { bindActionCreators } from "redux";
 import propTypes from "prop-types";
 //actions
 import * as newsActions from "./../../actions/news";
+import * as uiActions from "./../../actions/ui";
 //firebase
 import fire from "./../../config/Fire";
 //redux-form
 import { Field, reduxForm } from "redux-form";
+import { CircularProgress } from "@material-ui/core";
 import renderTextField from "./../../component/FormHelper/TextField/index";
 //redux
 import { compose } from "redux";
@@ -43,13 +45,12 @@ class NewsBoard extends Component {
   //////load trang
   componentDidMount() {
     const { newsActionsCreator } = this.props;
-
     const { fetchNewsSuccess, fetchNewsFailed } = newsActionsCreator;
 
-    //lấy dữ liệu trên firebase có database là videos
     fire
       .firestore()
       .collection("news")
+      .orderBy("createdAt", "desc")
       .get()
       .then(data => {
         let news = [];
@@ -93,20 +94,119 @@ class NewsBoard extends Component {
     return xhtml;
   };
   //Thêm news
-  handleSubmitForm = data => {};
+  handleSubmit = data => {
+    //reset để reset lại form
+    const { newsActionsCreator, uiActionCreators, currentUser,reset } = this.props;
+    const { addNewsSuccess, addNewsFailed } = newsActionsCreator;
+    const { hideLoadingLogin, showLoadingLogin } = uiActionCreators;
+    //update file xong trước mới update database
+    const { image } = this.state;
+    //
+    if (image) {
+      const uploadTask = fire
+        .storage()
+        .ref(`${image.name}`) //tên để image để lấy dữ liệu
+        .put(image); //file image để put lên storage
+      showLoadingLogin();
+      uploadTask.on(
+        "state_changed",
+        snapshot => {
+          //progress function
+          const progress = Math.round(
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          );
+          this.setState({ progress });
+        },
+        error => {
+          //error function
+          console.log(error);
+        },
+        () => {
+          //complete function
+          fire
+            .storage()
+            .ref()
+            //tìm video có tên là video.name rồi lấy link
+            .child(image.name)
+            .getDownloadURL()
+            .then(link => {
+              const news = {
+                email: currentUser.email,
+                nameUser: currentUser.nameUser,
+                link: link,
+                createdAt: new Date().toISOString(),
+                shareCount: 0,
+                likeCount: 0,
+                commentCount: 0,
+                content: data.content,
+                image: currentUser.linkImage
+              };
+              addNewsSuccess(news);
+              //thêm db vào firebase
+              fire
+                .firestore()
+                .collection("news")
+                .add(news);
+              reset();
+              hideLoadingLogin();
+              
+              this.setState({
+                image: null,
+                url: "",
+                progress: 0
+              });
+            })
+            .catch(err => {
+              console.log(err);
+              addNewsFailed(err);
+            });
+        }
+      );
+    } else {
+      const news = {
+        email: currentUser.email,
+        nameUser: currentUser.nameUser,
+        link: "",
+        createdAt: new Date().toISOString(),
+        shareCount: 0,
+        likeCount: 0,
+        commentCount: 0,
+        content: data.content,
+        image: currentUser.linkImage
+      };
+      addNewsSuccess(news);
+      //thêm db vào firebase
+      fire
+        .firestore()
+        .collection("news")
+        .add(news);
+        //reset lại text field
+        reset();
+      hideLoadingLogin();
+      this.setState({
+        image: null,
+        url: "",
+        progress: 0
+      });
+    }
+  };
 
   render() {
-    const { classes, handleSubmit } = this.props;
+    const { classes, handleSubmit, showLoadingLogin, currentUser } = this.props;
     return (
       <Grid container spacing={2} style={{ paddingTop: "10px" }}>
         <Grid item md={3} xs={12}></Grid>
         <Grid item md={6} xs={12}>
-          <form onSubmit={handleSubmit(this.handleSubmitForm)}>
+          <form onSubmit={handleSubmit(this.handleSubmit)}>
             <Card className={classes.cardContent}>
-              <Avatar
-                style={{ margin: "15px 0 0 15px" }}
-                src="https://tunglocpet.com/wp-content/uploads/2017/10/cho-corgi-pembroke-tunglocpet-03.jpg"
-              />
+              <Grid container style={{ margin: "10px 0 10px 10px" }}>
+                <Grid item md={1} xs={12}>
+                  <Avatar src={currentUser.linkImage} />
+                </Grid>
+                <Grid item md={11} xs={12} style={{ marginTop: " 12px" }}>
+                  <strong>{currentUser.nameUser}</strong>
+                </Grid>
+              </Grid>
 
               <Field
                 id="content"
@@ -153,9 +253,16 @@ class NewsBoard extends Component {
                       className={classes.button}
                       size="small"
                       type="submit"
+                      disabled={showLoadingLogin}
                     >
                       <AddIcon fontSize="small" />
                       Đăng
+                      {showLoadingLogin && (
+                        <CircularProgress
+                          size={30}
+                          className={classes.progress}
+                        />
+                      )}
                     </Button>
                   </div>
                 </Grid>
@@ -175,19 +282,28 @@ NewsBoard.propTypes = {
   newsList: propTypes.array,
   newsActionsCreator: propTypes.shape({
     fetchNewsSuccess: propTypes.func,
-    fetchNewsFailed: propTypes.func
-  })
+    fetchNewsFailed: propTypes.func,
+    addNewsSuccess: propTypes.func,
+    addNewsFailed: propTypes.func
+  }),
+  currentUser: propTypes.object
 };
 
 const mapStateToProps = state => {
   return {
-    newsList: state.news.newsList
+    newsList: state.news.newsList,
+    currentUser: state.user.currentUser,
+    showLoadingLogin: state.user.showLoadingLogin,
+    initialValues: {
+      content: state.user.showLoadingLogin ? null : null
+    }
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    newsActionsCreator: bindActionCreators(newsActions, dispatch)
+    newsActionsCreator: bindActionCreators(newsActions, dispatch),
+    uiActionCreators: bindActionCreators(uiActions, dispatch)
   };
 };
 

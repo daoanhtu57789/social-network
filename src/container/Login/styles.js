@@ -17,11 +17,6 @@ const styles = theme => ({
       marginTop: 20,
       position: "relative"
     },
-    customError: {
-      color: "red",
-      fontSize: "0.8rem",
-      marginTop: 10
-    },
     progress: {
       position: 'absolute'
     },

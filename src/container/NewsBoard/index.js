@@ -5,7 +5,7 @@ import { withStyles } from "@material-ui/core/styles";
 import { Button, Grid, Avatar, TextField } from "@material-ui/core";
 import Card from "@material-ui/core/Card";
 import AddIcon from "@material-ui/icons/Add";
-import CloudUploadIcon from '@material-ui/icons/CloudUpload';
+import CloudUploadIcon from "@material-ui/icons/CloudUpload";
 
 import IconButton from "@material-ui/core/IconButton";
 import PhotoCamera from "@material-ui/icons/PhotoCamera";
@@ -116,12 +116,7 @@ class NewsBoard extends Component {
   //like
   onClickLike = (data) => {
     const { newsActionsCreators } = this.props;
-    const {
-      fetchNewsSuccess,
-      fetchNewsFailed,
-      fetchLikeSuccess,
-      fetchLikeFailed,
-    } = newsActionsCreators;
+    const { likeNewsSuccess, likeNewsFailed } = newsActionsCreators;
     const like = {
       newsId: data.newsId,
       email: localStorage.getItem("user"),
@@ -132,24 +127,12 @@ class NewsBoard extends Component {
       .add(like)
       .then((doc) => {
         //lấy dữ liệu danh sách đã like
-        fire
-          .firestore()
-          .collection("likes")
-          .where("email", "==", localStorage.getItem("user"))
+        doc
           .get()
-          .then((likeData) => {
-            let likes = [];
-            likeData.forEach((doc) => {
-              likes.push({
-                likeId: doc.id,
-                email: doc.data().email,
-                newsId: doc.data().newsId,
-              });
-            });
-            fetchLikeSuccess(likes);
+          .then((doc) => {
+            likeNewsSuccess({ likeId: doc.id, ...like });
           })
           .catch((err) => {
-            fetchLikeFailed(err);
             console.log(err);
           });
 
@@ -161,50 +144,19 @@ class NewsBoard extends Component {
             //update cái gì thì cho cái đó vào
             likeCount: data.likeCount + 1,
           })
-          .then((doc) => {
-            fire
-              .firestore()
-              .collection("news")
-              .orderBy("createdAt", "desc")
-              .get()
-              .then((data) => {
-                let news = [];
-                data.forEach((doc) => {
-                  news.push({
-                    newsId: doc.id,
-                    email: doc.data().email,
-                    nameUser: doc.data().nameUser,
-                    link: doc.data().link,
-                    content: doc.data().content,
-                    createdAt: doc.data().createdAt,
-                    shareCount: doc.data().shareCount,
-                    likeCount: doc.data().likeCount,
-                    commentCount: doc.data().commentCount,
-                    image: doc.data().image,
-                    nameLink: doc.data().nameLink,
-                  });
-                });
-                fetchNewsSuccess(news);
-              })
-              .catch((err) => {
-                fetchNewsFailed(err);
-                console.log(err);
-              });
+          .catch((err) => {
+            console.log(err);
           });
       })
       .catch((err) => {
+        likeNewsFailed(err);
         console.log(err);
       });
   };
   //unlike
   onClickUnLike = (data) => {
     const { newsActionsCreators, likeList } = this.props;
-    const {
-      fetchNewsSuccess,
-      fetchNewsFailed,
-      fetchLikeSuccess,
-      fetchLikeFailed,
-    } = newsActionsCreators;
+    const { unlikeNewsSuccess, unlikeNewsFailed } = newsActionsCreators;
 
     likeList.forEach((like) => {
       if (like.newsId === data.newsId) {
@@ -215,27 +167,7 @@ class NewsBoard extends Component {
           .doc(`${like.likeId}`)
           .delete()
           .then((doc) => {
-            //lấy dữ liệu danh sách đã like
-            fire
-              .firestore()
-              .collection("likes")
-              .where("email", "==", localStorage.getItem("user"))
-              .get()
-              .then((likeData) => {
-                let likes = [];
-                likeData.forEach((doc) => {
-                  likes.push({
-                    likeId: doc.id,
-                    email: doc.data().email,
-                    newsId: doc.data().newsId,
-                  });
-                });
-                fetchLikeSuccess(likes);
-              })
-              .catch((err) => {
-                fetchLikeFailed(err);
-                console.log(err);
-              });
+            unlikeNewsSuccess(like);
 
             fire
               .firestore()
@@ -244,38 +176,13 @@ class NewsBoard extends Component {
               .update({
                 //update cái gì thì cho cái đó vào
                 likeCount: data.likeCount - 1,
-              });
-
-            fire
-              .firestore()
-              .collection("news")
-              .orderBy("createdAt", "desc")
-              .get()
-              .then((data) => {
-                let news = [];
-                data.forEach((doc) => {
-                  news.push({
-                    newsId: doc.id,
-                    email: doc.data().email,
-                    nameUser: doc.data().nameUser,
-                    link: doc.data().link,
-                    content: doc.data().content,
-                    createdAt: doc.data().createdAt,
-                    shareCount: doc.data().shareCount,
-                    likeCount: doc.data().likeCount,
-                    commentCount: doc.data().commentCount,
-                    image: doc.data().image,
-                    nameLink: doc.data().nameLink,
-                  });
-                });
-                fetchNewsSuccess(news);
               })
               .catch((err) => {
-                fetchNewsFailed(err);
                 console.log(err);
               });
           })
           .catch((err) => {
+            unlikeNewsFailed(err);
             console.log(err);
           });
       }
@@ -317,12 +224,7 @@ class NewsBoard extends Component {
   //Thực hiện xóa News
   handleDelete = (data) => {
     const { newsActionsCreators, modalActionsCreators } = this.props;
-    const {
-      fetchNewsSuccess,
-      fetchNewsFailed,
-      fetchLikeSuccess,
-      fetchLikeFailed,
-    } = newsActionsCreators;
+    const { deleteNewsFailed, deleteNewsSuccess } = newsActionsCreators;
     const { hideModal } = modalActionsCreators;
     hideModal();
     //Xóa database news với newsId
@@ -332,36 +234,10 @@ class NewsBoard extends Component {
       .doc(`${data.newsId}`)
       .delete()
       .then((doc) => {
-        fire
-          .firestore()
-          .collection("news")
-          .orderBy("createdAt", "desc")
-          .get()
-          .then((data) => {
-            let news = [];
-            data.forEach((doc) => {
-              news.push({
-                newsId: doc.id,
-                email: doc.data().email,
-                nameUser: doc.data().nameUser,
-                link: doc.data().link,
-                content: doc.data().content,
-                createdAt: doc.data().createdAt,
-                shareCount: doc.data().shareCount,
-                likeCount: doc.data().likeCount,
-                commentCount: doc.data().commentCount,
-                image: doc.data().image,
-                nameLink: doc.data().nameLink,
-              });
-            });
-            fetchNewsSuccess(news);
-          })
-          .catch((err) => {
-            fetchNewsFailed(err);
-            console.log(err);
-          });
+        deleteNewsSuccess(data.newsId);
       })
       .catch((err) => {
+        deleteNewsFailed(err);
         console.log(err);
       });
     //xóa video hoặc ảnh
@@ -380,28 +256,6 @@ class NewsBoard extends Component {
         });
       })
       .catch((err) => {
-        console.log(err);
-      });
-
-    //lấy dữ liệu danh sách đã like
-    fire
-      .firestore()
-      .collection("likes")
-      .where("email", "==", localStorage.getItem("user"))
-      .get()
-      .then((likeData) => {
-        let likes = [];
-        likeData.forEach((doc) => {
-          likes.push({
-            likeId: doc.id,
-            email: doc.data().email,
-            newsId: doc.data().newsId,
-          });
-        });
-        fetchLikeSuccess(likes);
-      })
-      .catch((err) => {
-        fetchLikeFailed(err);
         console.log(err);
       });
   };
@@ -446,10 +300,7 @@ class NewsBoard extends Component {
   //thực hiện sửa
   handleEdit = (data) => {
     const { newsActionsCreators, modalActionsCreators } = this.props;
-    const {
-      fetchNewsSuccess,
-      fetchNewsFailed
-    } = newsActionsCreators;
+    const { updateNewsSuccess, updateNewsFailed } = newsActionsCreators;
     const { hideModal } = modalActionsCreators;
     fire
       .firestore()
@@ -459,35 +310,13 @@ class NewsBoard extends Component {
         content: this.state.content,
       })
       .then((doc) => {
-        fire
-          .firestore()
-          .collection("news")
-          .orderBy("createdAt", "desc")
-          .get()
-          .then((data) => {
-            let news = [];
-            data.forEach((doc) => {
-              news.push({
-                newsId: doc.id,
-                email: doc.data().email,
-                nameUser: doc.data().nameUser,
-                link: doc.data().link,
-                content: doc.data().content,
-                createdAt: doc.data().createdAt,
-                shareCount: doc.data().shareCount,
-                likeCount: doc.data().likeCount,
-                commentCount: doc.data().commentCount,
-                image: doc.data().image,
-                nameLink: doc.data().nameLink,
-              });
-            });
-            fetchNewsSuccess(news);
-          })
-          .catch((err) => {
-            fetchNewsFailed(err);
-            console.log(err);
-          });
+        updateNewsSuccess(this.state.content, data.newsId);
+
         hideModal();
+      })
+      .catch((err) => {
+        console.log(err);
+        updateNewsFailed(err);
       });
   };
   renderNewsList = () => {
@@ -526,12 +355,7 @@ class NewsBoard extends Component {
       currentUser,
       reset,
     } = this.props;
-    const {
-      addNewsSuccess,
-      addNewsFailed,
-      fetchNewsSuccess,
-      fetchNewsFailed,
-    } = newsActionsCreators;
+    const { addNewsSuccess, addNewsFailed } = newsActionsCreators;
     const { hideLoadingLogin, showLoadingLogin } = uiActionsCreators;
     //update file xong trước mới update database
     const { image } = this.state;
@@ -576,41 +400,15 @@ class NewsBoard extends Component {
                 image: currentUser.linkImage,
                 nameLink: image.name,
               };
-              // addNewsSuccess(news);
               //thêm db vào firebase
               fire
                 .firestore()
                 .collection("news")
                 .add(news)
                 .then((doc) => {
-                  fire
-                    .firestore()
-                    .collection("news")
-                    .orderBy("createdAt", "desc")
-                    .get()
-                    .then((data) => {
-                      let news = [];
-                      data.forEach((doc) => {
-                        news.push({
-                          newsId: doc.id,
-                          email: doc.data().email,
-                          nameUser: doc.data().nameUser,
-                          link: doc.data().link,
-                          content: doc.data().content,
-                          createdAt: doc.data().createdAt,
-                          shareCount: doc.data().shareCount,
-                          likeCount: doc.data().likeCount,
-                          commentCount: doc.data().commentCount,
-                          image: doc.data().image,
-                          nameLink: doc.data().namLink,
-                        });
-                      });
-                      fetchNewsSuccess(news);
-                    })
-                    .catch((err) => {
-                      fetchNewsFailed(err);
-                      console.log(err);
-                    });
+                  doc.get().then((doc) => {
+                    addNewsSuccess({ newsId: doc.id, ...news });
+                  });
                 });
               reset();
               hideLoadingLogin();
@@ -640,41 +438,20 @@ class NewsBoard extends Component {
         image: currentUser.linkImage,
         nameLink: "",
       };
-      // addNewsSuccess(news);
       //thêm db vào firebase
       fire
         .firestore()
         .collection("news")
         .add(news)
         .then((doc) => {
-          console.log(doc.id);
-          fire
-            .firestore()
-            .collection("news")
-            .orderBy("createdAt", "desc")
+          doc
             .get()
-            .then((data) => {
-              let news = [];
-              data.forEach((doc) => {
-                news.push({
-                  newsId: doc.id,
-                  email: doc.data().email,
-                  nameUser: doc.data().nameUser,
-                  link: doc.data().link,
-                  content: doc.data().content,
-                  createdAt: doc.data().createdAt,
-                  shareCount: doc.data().shareCount,
-                  likeCount: doc.data().likeCount,
-                  commentCount: doc.data().commentCount,
-                  image: doc.data().image,
-                  nameLink: doc.data().nameLink,
-                });
-              });
-              fetchNewsSuccess(news);
+            .then((doc1) => {
+              addNewsSuccess({ newsId: doc.id, ...news });
             })
             .catch((err) => {
-              fetchNewsFailed(err);
               console.log(err);
+              addNewsFailed(err);
             });
         })
         .catch((err) => {
@@ -786,6 +563,14 @@ NewsBoard.propTypes = {
     fetchNewsFailed: propTypes.func,
     addNewsSuccess: propTypes.func,
     addNewsFailed: propTypes.func,
+    deleteNewsFailed: propTypes.func,
+    deleteNewsSuccess: propTypes.func,
+    updateNewsSuccess: propTypes.func,
+    updateNewsFailed: propTypes.func,
+    likeNewsSuccess: propTypes.func,
+    likeNewsFailed: propTypes.func,
+    unlikeNewsSuccess: propTypes.func,
+    unlikeNewsFailed: propTypes.func,
   }),
   currentUser: propTypes.object,
   uiActionsCreators: propTypes.shape({

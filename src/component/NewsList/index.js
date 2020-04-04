@@ -5,7 +5,7 @@ import propTypes from "prop-types";
 import News from "./../News/index";
 class NewsList extends Component {
   render() {
-    const { newsList, onClickLike,likeList , onClickUnLike,onClickDelete } = this.props;
+    const { newsList, onClickLike,likeList , onClickUnLike,onClickDelete,onClickEdit } = this.props;
 
     return (
       <Fragment>
@@ -25,6 +25,7 @@ class NewsList extends Component {
               onClickLike={() => onClickLike(news)}
               onClickUnLike={() => onClickUnLike(news)}
               onClickDelete={() => onClickDelete(news)}
+              onClickEdit={() => onClickEdit(news)}
             />
           );
         })}

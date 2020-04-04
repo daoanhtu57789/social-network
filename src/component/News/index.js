@@ -7,7 +7,6 @@ import CardContent from "@material-ui/core/CardContent";
 import CardActions from "@material-ui/core/CardActions";
 import Avatar from "@material-ui/core/Avatar";
 import IconButton from "@material-ui/core/IconButton";
-import Typography from "@material-ui/core/Typography";
 import FavoriteIcon from "@material-ui/icons/Favorite";
 import ShareIcon from "@material-ui/icons/Share";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
@@ -30,43 +29,43 @@ class News extends Component {
   state = {
     expanded: false,
     anchorEl: null,
-    isMenuOpen: false
+    isMenuOpen: false,
   };
 
-  handleClick = event => {
+  handleClick = (event) => {
     this.setState({
       anchorEl: event.currentTarget,
-      isMenuOpen: true
+      isMenuOpen: true,
     });
   };
 
   handleClose = () => {
     this.setState({
       anchorEl: null,
-      isMenuOpen: false
+      isMenuOpen: false,
     });
   };
   handleExpandClick = () => {
     this.setState({
-      expanded: !this.state.expanded
+      expanded: !this.state.expanded,
     });
   };
-
+  //Xóa bài viết
   onClickDelete = () => {
-    const {onClickDelete} = this.props;
+    const { onClickDelete } = this.props;
     onClickDelete();
     this.handleClose();
+  };
 
-  }
+  //Sửa bài viết
+  onClickEdit = () => {
+    const { onClickEdit } = this.props;
+    onClickEdit();
+    this.handleClose();
+  };
   render() {
     dayjs.extend(relativeTime);
-    const {
-      classes,
-      news,
-      onClickLike,
-      onClickUnLike,
-      color
-    } = this.props;
+    const { classes, news, onClickLike, onClickUnLike, color } = this.props;
     const { expanded } = this.state;
 
     return (
@@ -93,11 +92,11 @@ class News extends Component {
                   PaperProps={{
                     style: {
                       width: "20ch",
-                      marginLeft: "7ch"
-                    }
+                      marginLeft: "7ch",
+                    },
                   }}
                 >
-                  <MenuItem onClick={this.handleClose}>
+                  <MenuItem onClick={this.onClickEdit}>
                     Sửa Bài Viết <EditIcon fontSize="small" />{" "}
                   </MenuItem>
                   <MenuItem onClick={this.onClickDelete}>
@@ -117,17 +116,11 @@ class News extends Component {
         />
 
         <CardContent>
-          <Typography variant="body2" color="textSecondary" component="p">
-            {news.content}
-          </Typography>
+          <strong>{news.content}</strong>
         </CardContent>
 
         {news.link.length > 1 ? (
-          <CardMedia
-            className={classes.media}
-            image={news.link}
-            title="Paella dish"
-          />
+          <CardMedia className={classes.media} image={news.link} />
         ) : (
           ""
         )}
@@ -152,7 +145,7 @@ class News extends Component {
           </IconButton>
           <IconButton
             className={clsx(classes.expand, {
-              [classes.expandOpen]: expanded
+              [classes.expandOpen]: expanded,
             })}
             onClick={() => this.handleExpandClick()}
             aria-expanded={expanded}
@@ -169,7 +162,7 @@ class News extends Component {
 News.propTypes = {
   classes: propTypes.object,
   news: propTypes.object,
-  handleLike: propTypes.func
+  handleLike: propTypes.func,
 };
 
 export default withStyles(styles)(News);

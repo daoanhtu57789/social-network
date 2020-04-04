@@ -17,7 +17,7 @@ class DashBoard extends Component {
   componentDidMount() {
     const { userActionsCreator } = this.props;
     const { fetchCurrentUser } = userActionsCreator;
-    //lấy dữ liệu trên firebase có database là videos
+    //lấy dữ liệu trên firebase có database là likes 
     fire
       .firestore()
       .collection("user")

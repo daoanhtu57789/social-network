@@ -66,6 +66,7 @@ class Signup extends Component {
           hideLoadingSignup();
         })
         .catch(error => {
+          console.log(error);
           hideLoadingSignup();
         });
     } else {

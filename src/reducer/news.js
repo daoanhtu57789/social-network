@@ -1,7 +1,8 @@
 import * as newsConstants from './../constants/news';
 
 const initialState = {
-    newsList : []
+    newsList : [],
+    likeList : []
 };
 
 const reducer = (state = initialState,action) =>{
@@ -32,6 +33,22 @@ const reducer = (state = initialState,action) =>{
             }
         }
         case newsConstants.ADD_NEWS_FAILED :{
+            const {err} = action.payload;
+            console.log(err);
+            return {
+                ...state
+            }
+        }
+
+        //lấy dữ liệu like 
+        case newsConstants.FETCH_LIKE_SUCCESS :{
+            const {data} = action.payload;
+            return {
+                ...state,
+                likeList : data
+            }
+        }
+        case newsConstants.FETCH_LIKE_FAILED :{
             const {err} = action.payload;
             console.log(err);
             return {

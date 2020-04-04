@@ -5,12 +5,28 @@ import propTypes from "prop-types";
 import News from "./../News/index";
 class NewsList extends Component {
   render() {
-    const { newsList } = this.props;
+    const { newsList, onClickLike,likeList , onClickUnLike,onClickDelete } = this.props;
 
     return (
       <Fragment>
         {newsList.map((news, index) => {
-          return <News key={index} news={news} />;
+          let color = "default";
+          likeList.forEach(like => {
+            if (like.newsId === news.newsId) {
+              color = "secondary";
+              return 0;
+            }
+          });
+          return (
+            <News
+              color ={color}
+              key={index}
+              news={news}
+              onClickLike={() => onClickLike(news)}
+              onClickUnLike={() => onClickUnLike(news)}
+              onClickDelete={() => onClickDelete(news)}
+            />
+          );
         })}
       </Fragment>
     );

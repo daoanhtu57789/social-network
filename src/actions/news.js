@@ -37,5 +37,23 @@ export const addNewsFailed = (err) => {
         }
     }
 };
+//lấy dữ liệu like từ firebase
+export const fetchLikeSuccess = (data) => {
+    return {
+        type : newsConstants.FETCH_LIKE_SUCCESS,
+        payload : {
+            data    
+        }
+    }
+};
+
+export const fetchLikeFailed = (err) => {
+    return {
+        type : newsConstants.FETCH_LIKE_FAILED,
+        payload : {
+            err
+        }
+    }
+};
 
 

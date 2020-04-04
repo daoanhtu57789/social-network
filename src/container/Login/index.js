@@ -17,6 +17,7 @@ import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import * as uiActions from "./../../actions/ui";
 import * as userActions from "./../../actions/user";
+import * as newsActions from "./../../actions/news";
 //check props
 import propTypes from "prop-types";
 //firebase
@@ -45,8 +46,9 @@ class Login extends Component {
     fire.auth().onAuthStateChanged(user => {
       if (user) {
         localStorage.setItem("user", user.email);
-        const { userActionsCreator } = this.props;
+        const { userActionsCreator, newsActionsCreator } = this.props;
         const { fetchCurrentUser } = userActionsCreator;
+        const { fetchLikeSuccess, fetchLikeFailed } = newsActionsCreator;
         //lấy dữ liệu trên firebase có database là videos
         fire
           .firestore()
@@ -65,6 +67,26 @@ class Login extends Component {
               };
               fetchCurrentUser(currentUser);
             });
+          });
+        //lấy dữ liệu trên firebase có database là videos
+        fire
+          .firestore()
+          .collection("likes")
+          .where("email", "==", user.email)
+          .get()
+          .then(data => {
+            const likeList = [];
+            data.forEach(doc => {
+              likeList.push({
+                likeId: doc.id,
+                email: doc.data().email,
+                newsId: doc.data().newsId
+              });
+            });
+            fetchLikeSuccess(likeList);
+          })
+          .catch(err => {
+            fetchLikeFailed(err);
           });
         history.push("/home");
       } else {
@@ -85,8 +107,9 @@ class Login extends Component {
       .then(u => {
         hideLoadingLogin();
         if (history) {
-          const { userActionsCreator } = this.props;
+          const { userActionsCreator, newsActionsCreator } = this.props;
           const { fetchCurrentUser } = userActionsCreator;
+          const { fetchLikeSuccess, fetchLikeFailed } = newsActionsCreator;
           //lấy dữ liệu trên firebase có database là videos
           fire
             .firestore()
@@ -106,6 +129,28 @@ class Login extends Component {
                 fetchCurrentUser(currentUser);
               });
             });
+
+          //lấy dữ liệu trên firebase có database là likes
+          fire
+            .firestore()
+            .collection("likes")
+            .where("email", "==", this.state.email)
+            .get()
+            .then(data => {
+              const likeList = [];
+              data.forEach(doc => {
+                likeList.push({
+                  likeId: doc.id,
+                  email: doc.data().email,
+                  newsId: doc.data().newsId
+                });
+              });
+              fetchLikeSuccess(likeList);
+            })
+            .catch(err => {
+              fetchLikeFailed(err);
+            });
+
           history.push("/home");
         }
       })
@@ -152,7 +197,7 @@ class Login extends Component {
               onChange={this.handleChange}
               fullWidth
             />
-    
+
             <Button
               type="submit"
               variant="contained"
@@ -197,7 +242,8 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     uiActionCreators: bindActionCreators(uiActions, dispatch),
-    userActionsCreator: bindActionCreators(userActions, dispatch)
+    userActionsCreator: bindActionCreators(userActions, dispatch),
+    newsActionsCreator: bindActionCreators(newsActions, dispatch)
   };
 };
 

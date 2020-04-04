@@ -17,6 +17,7 @@ import propTypes from "prop-types";
 //actions
 import * as newsActions from "./../../actions/news";
 import * as uiActions from "./../../actions/ui";
+import * as modalActions from "./../../actions/modal";
 //firebase
 import fire from "./../../config/Fire";
 //redux-form
@@ -44,8 +45,13 @@ class NewsBoard extends Component {
 
   //////load trang
   componentDidMount() {
-    const { newsActionsCreator } = this.props;
-    const { fetchNewsSuccess, fetchNewsFailed } = newsActionsCreator;
+    const { newsActionsCreators } = this.props;
+    const {
+      fetchNewsSuccess,
+      fetchNewsFailed,
+      fetchLikeSuccess,
+      fetchLikeFailed
+    } = newsActionsCreators;
 
     fire
       .firestore()
@@ -57,6 +63,7 @@ class NewsBoard extends Component {
         data.forEach(doc => {
           news.push({
             newsId: doc.id,
+            email: doc.data().email,
             nameUser: doc.data().nameUser,
             link: doc.data().link,
             content: doc.data().content,
@@ -64,22 +71,350 @@ class NewsBoard extends Component {
             shareCount: doc.data().shareCount,
             likeCount: doc.data().likeCount,
             commentCount: doc.data().commentCount,
-            image: doc.data().image
+            image: doc.data().image,
+            nameLink: doc.data().nameLink
           });
         });
         fetchNewsSuccess(news);
+        //lấy dữ liệu trên firebase có database là likes
+        fire
+          .firestore()
+          .collection("likes")
+          .where("email", "==", localStorage.getItem("user"))
+          .get()
+          .then(data => {
+            const likeList = [];
+            data.forEach(doc => {
+              likeList.push({
+                likeId: doc.id,
+                email: doc.data().email,
+                newsId: doc.data().newsId
+              });
+            });
+            fetchLikeSuccess(likeList);
+          })
+          .catch(err => {
+            fetchLikeFailed(err);
+          });
       })
       .catch(err => {
         console.log(err);
         fetchNewsFailed(err);
       });
   }
-  //////
+  //like
+  onClickLike = data => {
+    const { newsActionsCreators } = this.props;
+    const {
+      fetchNewsSuccess,
+      fetchNewsFailed,
+      fetchLikeSuccess,
+      fetchLikeFailed
+    } = newsActionsCreators;
+    const like = {
+      newsId: data.newsId,
+      email: localStorage.getItem("user")
+    };
+    fire
+      .firestore()
+      .collection("likes")
+      .add(like)
+      .then(doc => {
+        //lấy dữ liệu danh sách đã like
+        fire
+          .firestore()
+          .collection("likes")
+          .where("email", "==", localStorage.getItem("user"))
+          .get()
+          .then(likeData => {
+            let likes = [];
+            likeData.forEach(doc => {
+              likes.push({
+                likeId: doc.id,
+                email: doc.data().email,
+                newsId: doc.data().newsId
+              });
+            });
+            fetchLikeSuccess(likes);
+          })
+          .catch(err => {
+            fetchLikeFailed(err);
+            console.log(err);
+          });
+
+        fire
+          .firestore()
+          .collection("news")
+          .doc(`/${data.newsId}`)
+          .update({
+            //update cái gì thì cho cái đó vào
+            likeCount: data.likeCount + 1
+          });
+
+        fire
+          .firestore()
+          .collection("news")
+          .orderBy("createdAt", "desc")
+          .get()
+          .then(data => {
+            let news = [];
+            data.forEach(doc => {
+              news.push({
+                newsId: doc.id,
+                email: doc.data().email,
+                nameUser: doc.data().nameUser,
+                link: doc.data().link,
+                content: doc.data().content,
+                createdAt: doc.data().createdAt,
+                shareCount: doc.data().shareCount,
+                likeCount: doc.data().likeCount,
+                commentCount: doc.data().commentCount,
+                image: doc.data().image,
+                nameLink: doc.data().nameLink
+              });
+            });
+            fetchNewsSuccess(news);
+          })
+          .catch(err => {
+            fetchNewsFailed(err);
+            console.log(err);
+          });
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
+  //unlike
+  onClickUnLike = data => {
+    const { newsActionsCreators, likeList } = this.props;
+    const {
+      fetchNewsSuccess,
+      fetchNewsFailed,
+      fetchLikeSuccess,
+      fetchLikeFailed
+    } = newsActionsCreators;
+
+    likeList.forEach(like => {
+      if (like.newsId === data.newsId) {
+        //thêm vào database likes
+        fire
+          .firestore()
+          .collection("likes")
+          .doc(`${like.likeId}`)
+          .delete()
+          .then(doc => {
+            //lấy dữ liệu danh sách đã like
+            fire
+              .firestore()
+              .collection("likes")
+              .where("email", "==", localStorage.getItem("user"))
+              .get()
+              .then(likeData => {
+                let likes = [];
+                likeData.forEach(doc => {
+                  likes.push({
+                    likeId: doc.id,
+                    email: doc.data().email,
+                    newsId: doc.data().newsId
+                  });
+                });
+                fetchLikeSuccess(likes);
+              })
+              .catch(err => {
+                fetchLikeFailed(err);
+                console.log(err);
+              });
+
+            fire
+              .firestore()
+              .collection("news")
+              .doc(`/${data.newsId}`)
+              .update({
+                //update cái gì thì cho cái đó vào
+                likeCount: data.likeCount - 1
+              });
+
+            fire
+              .firestore()
+              .collection("news")
+              .orderBy("createdAt", "desc")
+              .get()
+              .then(data => {
+                let news = [];
+                data.forEach(doc => {
+                  news.push({
+                    newsId: doc.id,
+                    email: doc.data().email,
+                    nameUser: doc.data().nameUser,
+                    link: doc.data().link,
+                    content: doc.data().content,
+                    createdAt: doc.data().createdAt,
+                    shareCount: doc.data().shareCount,
+                    likeCount: doc.data().likeCount,
+                    commentCount: doc.data().commentCount,
+                    image: doc.data().image,
+                    nameLink: doc.data().nameLink
+                  });
+                });
+                fetchNewsSuccess(news);
+              })
+              .catch(err => {
+                fetchNewsFailed(err);
+                console.log(err);
+              });
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      }
+    });
+  };
+  //////Xóa news
+  onClickDelete = data => {
+    const { modalActionsCreators } = this.props;
+    const {
+      showModal,
+      changeTitle,
+      changeModal,
+      hideModal
+    } = modalActionsCreators;
+    showModal();
+    changeTitle("Xóa Bài Viết");
+    changeModal(
+      <Grid container>
+        <Grid item md={2} xs={12}></Grid>
+        <Grid item md={8} xs={12}>
+          <strong>Bạn có chắc muốn xóa bài viết này.</strong>
+          <Grid container>
+            <Grid item md={5} xs={8}>
+              <Button color="secondary" onClick={() => this.handleDelete(data)}>
+                Yes
+              </Button>
+            </Grid>
+            <Grid item md={3} xs={8}>
+              <Button color="primary" onClick={hideModal}>
+                Cancel
+              </Button>
+            </Grid>
+          </Grid>
+        </Grid>
+        <Grid item md={2} xs={12}></Grid>
+      </Grid>
+    );
+  };
+
+  //Xóa News
+  handleDelete = data => {
+    const { newsActionsCreators, modalActionsCreators } = this.props;
+    const {
+      fetchNewsSuccess,
+      fetchNewsFailed,
+      fetchLikeSuccess,
+      fetchLikeFailed
+    } = newsActionsCreators;
+    const { hideModal } = modalActionsCreators;
+    hideModal();
+    //Xóa database news với newsId
+    fire
+      .firestore()
+      .collection("news")
+      .doc(`${data.newsId}`)
+      .delete()
+      .then(doc => {
+        fire
+          .firestore()
+          .collection("news")
+          .orderBy("createdAt", "desc")
+          .get()
+          .then(data => {
+            let news = [];
+            data.forEach(doc => {
+              news.push({
+                newsId: doc.id,
+                email: doc.data().email,
+                nameUser: doc.data().nameUser,
+                link: doc.data().link,
+                content: doc.data().content,
+                createdAt: doc.data().createdAt,
+                shareCount: doc.data().shareCount,
+                likeCount: doc.data().likeCount,
+                commentCount: doc.data().commentCount,
+                image: doc.data().image,
+                nameLink: doc.data().nameLink
+              });
+            });
+            fetchNewsSuccess(news);
+          })
+          .catch(err => {
+            fetchNewsFailed(err);
+            console.log(err);
+          });
+      })
+      .catch(err => {
+        console.log(err);
+      });
+    //xóa video hoặc ảnh
+    if (data.nameLink) {
+      fire
+        .storage()
+        .ref(`${data.nameLink}`)
+        .delete();
+    }
+
+    fire
+      .firestore()
+      .collection("likes")
+      .where("newsId", "==", data.newsId)
+      .get()
+      .then(data => {
+        data.forEach(doc => {
+          fire
+            .firestore()
+            .collection("likes")
+            .doc(`${doc.id}`)
+            .delete();
+        });
+      })
+      .catch(err => {
+        console.log(err);
+      });
+
+    //lấy dữ liệu danh sách đã like
+    fire
+      .firestore()
+      .collection("likes")
+      .where("email", "==", localStorage.getItem("user"))
+      .get()
+      .then(likeData => {
+        let likes = [];
+        likeData.forEach(doc => {
+          likes.push({
+            likeId: doc.id,
+            email: doc.data().email,
+            newsId: doc.data().newsId
+          });
+        });
+        fetchLikeSuccess(likes);
+      })
+      .catch(err => {
+        fetchLikeFailed(err);
+        console.log(err);
+      });
+  };
+
   renderNewsList = () => {
-    const { newsList } = this.props;
+    const { newsList, likeList } = this.props;
     let xhtml = null;
     if (newsList.length > 0) {
-      xhtml = <NewsList newsList={newsList} />;
+      xhtml = (
+        <NewsList
+          newsList={newsList}
+          likeList={likeList}
+          onClickLike={this.onClickLike}
+          onClickUnLike={this.onClickUnLike}
+          onClickDelete={this.onClickDelete}
+        />
+      );
     } else {
       xhtml = (
         <Grid container spacing={2} style={{ paddingTop: "10px" }}>
@@ -96,9 +431,19 @@ class NewsBoard extends Component {
   //Thêm news
   handleSubmit = data => {
     //reset để reset lại form
-    const { newsActionsCreator, uiActionCreators, currentUser,reset } = this.props;
-    const { addNewsSuccess, addNewsFailed } = newsActionsCreator;
-    const { hideLoadingLogin, showLoadingLogin } = uiActionCreators;
+    const {
+      newsActionsCreators,
+      uiActionsCreators,
+      currentUser,
+      reset
+    } = this.props;
+    const {
+      addNewsSuccess,
+      addNewsFailed,
+      fetchNewsSuccess,
+      fetchNewsFailed
+    } = newsActionsCreators;
+    const { hideLoadingLogin, showLoadingLogin } = uiActionsCreators;
     //update file xong trước mới update database
     const { image } = this.state;
     //
@@ -139,17 +484,48 @@ class NewsBoard extends Component {
                 likeCount: 0,
                 commentCount: 0,
                 content: data.content,
-                image: currentUser.linkImage
+                image: currentUser.linkImage,
+                nameLink: image.name
               };
-              addNewsSuccess(news);
+              // addNewsSuccess(news);
               //thêm db vào firebase
               fire
                 .firestore()
                 .collection("news")
-                .add(news);
+                .add(news)
+                .then(doc => {
+                  fire
+                    .firestore()
+                    .collection("news")
+                    .orderBy("createdAt", "desc")
+                    .get()
+                    .then(data => {
+                      let news = [];
+                      data.forEach(doc => {
+                        news.push({
+                          newsId: doc.id,
+                          email: doc.data().email,
+                          nameUser: doc.data().nameUser,
+                          link: doc.data().link,
+                          content: doc.data().content,
+                          createdAt: doc.data().createdAt,
+                          shareCount: doc.data().shareCount,
+                          likeCount: doc.data().likeCount,
+                          commentCount: doc.data().commentCount,
+                          image: doc.data().image,
+                          nameLink: doc.data().namLink
+                        });
+                      });
+                      fetchNewsSuccess(news);
+                    })
+                    .catch(err => {
+                      fetchNewsFailed(err);
+                      console.log(err);
+                    });
+                });
               reset();
               hideLoadingLogin();
-              
+
               this.setState({
                 image: null,
                 url: "",
@@ -172,16 +548,51 @@ class NewsBoard extends Component {
         likeCount: 0,
         commentCount: 0,
         content: data.content,
-        image: currentUser.linkImage
+        image: currentUser.linkImage,
+        nameLink: ""
       };
-      addNewsSuccess(news);
+      // addNewsSuccess(news);
       //thêm db vào firebase
       fire
         .firestore()
         .collection("news")
-        .add(news);
-        //reset lại text field
-        reset();
+        .add(news)
+        .then(doc => {
+          fire
+            .firestore()
+            .collection("news")
+            .orderBy("createdAt", "desc")
+            .get()
+            .then(data => {
+              let news = [];
+              data.forEach(doc => {
+                news.push({
+                  newsId: doc.id,
+                  email: doc.data().email,
+                  nameUser: doc.data().nameUser,
+                  link: doc.data().link,
+                  content: doc.data().content,
+                  createdAt: doc.data().createdAt,
+                  shareCount: doc.data().shareCount,
+                  likeCount: doc.data().likeCount,
+                  commentCount: doc.data().commentCount,
+                  image: doc.data().image,
+                  nameLink: doc.data().nameLink
+                });
+              });
+              fetchNewsSuccess(news);
+            })
+            .catch(err => {
+              fetchNewsFailed(err);
+              console.log(err);
+            });
+        })
+        .catch(err => {
+          console.log(err);
+        });
+
+      //reset lại text field
+      reset();
       hideLoadingLogin();
       this.setState({
         image: null,
@@ -280,13 +691,21 @@ class NewsBoard extends Component {
 NewsBoard.propTypes = {
   classes: propTypes.object,
   newsList: propTypes.array,
-  newsActionsCreator: propTypes.shape({
+  newsActionsCreators: propTypes.shape({
     fetchNewsSuccess: propTypes.func,
     fetchNewsFailed: propTypes.func,
     addNewsSuccess: propTypes.func,
     addNewsFailed: propTypes.func
   }),
-  currentUser: propTypes.object
+  currentUser: propTypes.object,
+  uiActionsCreators: propTypes.shape({
+    hideLoadingLogin: propTypes.func,
+    showLoadingLogin: propTypes.func
+  }),
+  modalActionsCreators: propTypes.shape({
+    hideLoadingLogin: propTypes.func,
+    showLoadingLogin: propTypes.func
+  })
 };
 
 const mapStateToProps = state => {
@@ -294,16 +713,15 @@ const mapStateToProps = state => {
     newsList: state.news.newsList,
     currentUser: state.user.currentUser,
     showLoadingLogin: state.user.showLoadingLogin,
-    initialValues: {
-      content: state.user.showLoadingLogin ? null : null
-    }
+    likeList: state.news.likeList
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    newsActionsCreator: bindActionCreators(newsActions, dispatch),
-    uiActionCreators: bindActionCreators(uiActions, dispatch)
+    newsActionsCreators: bindActionCreators(newsActions, dispatch),
+    uiActionsCreators: bindActionCreators(uiActions, dispatch),
+    modalActionsCreators: bindActionCreators(modalActions, dispatch)
   };
 };
 

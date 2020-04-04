@@ -9,7 +9,9 @@ import { BrowserRouter, Switch, Redirect } from "react-router-dom";
 import { PAGE_ROUTES, LOGIN_ROUTES } from "./../../constants/index";
 import AdminLayoutRoute from "./../../commons/Layout/AdminLayoutRoute";
 import LoginLayoutRoute from "./../../commons/Layout/LoginLayoutRoute";
-//các container
+//
+import CommonModal from './../../component/Modal/index';
+
 import "./App.css";
 //redux
 import { Provider } from "react-redux";
@@ -56,6 +58,7 @@ class App extends Component {
         <BrowserRouter>
           <ThemeProvider theme={theme}>
             <CssBaseline />
+            <CommonModal/>
             <Switch>
               {this.renderAdminRoutes()}
               {this.renderLoginRoutes()}

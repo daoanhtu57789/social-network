@@ -28,7 +28,7 @@ import clsx from "clsx";
 //firebase
 import fire from "./../../../config/Fire";
 //
-import { withRouter } from "react-router-dom";
+import { withRouter, Link } from "react-router-dom";
 
 //biến global
 const menuId = "primary-search-account-menu";
@@ -38,16 +38,16 @@ class Header extends Component {
     this.state = {
       anchorEl: null,
       isMenuOpen: false,
-      expanded: false
+      expanded: false,
     };
   }
   //Xoay icon đăng xuất khi click
 
-  handleProfileMenuOpen = event => {
+  handleProfileMenuOpen = (event) => {
     this.setState({
       anchorEl: event.currentTarget,
       isMenuOpen: true,
-      expanded: true
+      expanded: true,
     });
   };
 
@@ -55,20 +55,20 @@ class Header extends Component {
     this.setState({
       anchorEl: null,
       isMenuOpen: false,
-      expanded: false
+      expanded: false,
     });
   };
 
   //logout
   handleLogout = () => {
-    const {handleLogout} = this.props;
+    const { handleLogout } = this.props;
     const { history } = this.props;
     fire.auth().signOut();
     handleLogout();
     history.push("/login");
   };
   //function lấy 6 kí tự đầu của tên
-  renderNameUser = name => {
+  renderNameUser = (name) => {
     var newName = "";
     var arrayName = name.split(" ");
     newName = arrayName[0];
@@ -89,12 +89,13 @@ class Header extends Component {
         onClose={this.handleMenuClose}
         style={{ marginTop: "30px" }}
       >
-        <MenuItem
-          className={classes.menuLinkActive}
-          onClick={this.handleLogout}
-        >
-          Your Profile
-        </MenuItem>
+        <Link to="/home/profile" style={{color:'#000000'}} className={classes.link}>
+          <MenuItem
+            className={classes.menuLinkActive}
+          >
+            Your Profile
+          </MenuItem>
+        </Link>
         <MenuItem
           className={classes.menuLinkActive}
           onClick={this.handleLogout}
@@ -145,7 +146,7 @@ class Header extends Component {
                 placeholder="Search…"
                 classes={{
                   root: classes.inputRoot,
-                  input: classes.inputInput
+                  input: classes.inputInput,
                 }}
                 inputProps={{ "aria-label": "search" }}
               />
@@ -173,9 +174,9 @@ class Header extends Component {
               <IconButton color="inherit">
                 <Badge color="secondary">
                   <HomeIcon />{" "}
-                  <span style={{ fontSize: "15px", lineHeight: "30px" }}>
+                  <Link to="/home" className={classes.link}>
                     Trang Chủ
-                  </span>
+                  </Link>
                 </Badge>
               </IconButton>
             </div>
@@ -244,7 +245,7 @@ class Header extends Component {
                 aria-haspopup="true"
                 color="inherit"
                 className={clsx(classes.expand, {
-                  [classes.expandOpen]: expanded
+                  [classes.expandOpen]: expanded,
                 })}
                 onClick={this.handleProfileMenuOpen}
                 aria-expanded={expanded}
@@ -265,7 +266,7 @@ Header.propTypes = {
   classes: propTypes.object,
   history: propTypes.object,
   currentUser: propTypes.object,
-  handleLogout : propTypes.func
+  handleLogout: propTypes.func,
 };
 
 export default withStyles(styles)(withRouter(Header));

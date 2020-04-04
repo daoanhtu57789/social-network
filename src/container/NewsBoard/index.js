@@ -44,9 +44,6 @@ class NewsBoard extends Component {
       const image = event.target.files[0];
       this.setState({ image });
     }
-    this.setState({
-      [event.target.name]: event.target.value,
-    });
   };
 
   handleChangeContent = (event) => {

@@ -14,26 +14,30 @@ import * as userActions from "./../../actions/user";
 //firebase
 import fire from "./../../config/Fire";
 class DashBoard extends Component {
-  componentDidMount() {
+  UNSAFE_componentWillMount() {
     const { userActionsCreator } = this.props;
     const { fetchCurrentUser } = userActionsCreator;
-    //lấy dữ liệu trên firebase có database là likes 
+    const { userEditing } = userActionsCreator;
+    
+    //lấy dữ liệu trên firebase có database là likes
     fire
       .firestore()
       .collection("user")
       .where("email", "==", localStorage.getItem("user"))
       .get()
-      .then(data => {
-        data.forEach(doc => {
+      .then((data) => {
+        data.forEach((doc) => {
           let currentUser = {
             userId: doc.id,
             email: doc.data().email,
             gender: doc.data().gender,
             nameUser: doc.data().nameUser,
             date: doc.data().date,
-            linkImage: doc.data().linkImage
+            avatar: doc.data().avatar,
+            password : doc.data().password
           };
           fetchCurrentUser(currentUser);
+          userEditing(currentUser);
         });
       });
   }
@@ -47,7 +51,8 @@ class DashBoard extends Component {
       gender: "",
       nameUser: "",
       date: "",
-      linkImage: ""
+      avatar: "",
+      password : ""
     });
   };
 
@@ -66,21 +71,20 @@ class DashBoard extends Component {
 
 DashBoard.propTypes = {
   children: propTypes.object,
-  currentUser: propTypes.object,
   userActionsCreator: propTypes.shape({
-    fetchCurrentUser: propTypes.func
-  })
+    fetchCurrentUser: propTypes.func,
+  }),
 };
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
-    currentUser: state.user.currentUser
+    currentUser: state.user.currentUser,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    userActionsCreator: bindActionCreators(userActions, dispatch)
+    userActionsCreator: bindActionCreators(userActions, dispatch),
   };
 };
 

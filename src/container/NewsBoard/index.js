@@ -52,7 +52,7 @@ class NewsBoard extends Component {
     });
   };
   //////load trang
-  componentDidMount() {
+  UNSAFE_componentWillMount() {
     const { newsActionsCreators } = this.props;
     const {
       fetchNewsSuccess,
@@ -73,14 +73,14 @@ class NewsBoard extends Component {
             newsId: doc.id,
             email: doc.data().email,
             nameUser: doc.data().nameUser,
-            link: doc.data().link,
+            image: doc.data().image,
             content: doc.data().content,
             createdAt: doc.data().createdAt,
             shareCount: doc.data().shareCount,
             likeCount: doc.data().likeCount,
             commentCount: doc.data().commentCount,
-            image: doc.data().image,
-            nameLink: doc.data().nameLink,
+            avatar: doc.data().avatar,
+            nameImage: doc.data().nameImage,
           });
         });
         fetchNewsSuccess(news);
@@ -238,8 +238,8 @@ class NewsBoard extends Component {
         console.log(err);
       });
     //xóa video hoặc ảnh
-    if (data.nameLink) {
-      fire.storage().ref(`${data.nameLink}`).delete();
+    if (data.nameImage) {
+      fire.storage().ref(`${data.nameImage}`).delete();
     }
 
     fire
@@ -388,14 +388,14 @@ class NewsBoard extends Component {
               const news = {
                 email: currentUser.email,
                 nameUser: currentUser.nameUser,
-                link: link,
+                image: link,
                 createdAt: new Date().toISOString(),
                 shareCount: 0,
                 likeCount: 0,
                 commentCount: 0,
-                content: data.content,
-                image: currentUser.linkImage,
-                nameLink: image.name,
+                content: data.content ? data.connect : " ",
+                avatar: currentUser.avatar,
+                nameImage: image.name,
               };
               //thêm db vào firebase
               fire
@@ -426,14 +426,14 @@ class NewsBoard extends Component {
       const news = {
         email: currentUser.email,
         nameUser: currentUser.nameUser,
-        link: "",
+        image: "",
         createdAt: new Date().toISOString(),
         shareCount: 0,
         likeCount: 0,
         commentCount: 0,
-        content: data.content,
-        image: currentUser.linkImage,
-        nameLink: "",
+        content: data.content ? data.content : " ",
+        avatar: currentUser.avatar,
+        nameImage: "",
       };
       //thêm db vào firebase
       fire
@@ -476,7 +476,7 @@ class NewsBoard extends Component {
             <Card className={classes.cardContent}>
               <Grid container style={{ margin: "10px 0 10px 10px" }}>
                 <Grid item md={1} xs={12}>
-                  <Avatar src={currentUser.linkImage} />
+                  <Avatar src={currentUser.avatar} />
                 </Grid>
                 <Grid item md={11} xs={12} style={{ marginTop: " 12px" }}>
                   <strong>{currentUser.nameUser}</strong>

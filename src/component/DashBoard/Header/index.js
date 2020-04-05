@@ -29,6 +29,11 @@ import clsx from "clsx";
 import fire from "./../../../config/Fire";
 //
 import { withRouter, Link } from "react-router-dom";
+//redux
+import { connect } from "react-redux";
+import { compose } from "redux";
+import { bindActionCreators } from "redux";
+import * as userActions from "./../../../actions/user";
 
 //biến global
 const menuId = "primary-search-account-menu";
@@ -58,6 +63,32 @@ class Header extends Component {
       expanded: false,
     });
   };
+
+  //load lại truowsc khi render
+  UNSAFE_componentWillMount () {
+    const { userActionsCreator } = this.props;
+    const { fetchCurrentUser } = userActionsCreator;
+    //lấy dữ liệu trên firebase có database là videos
+    fire
+      .firestore()
+      .collection("user")
+      .where("email", "==", localStorage.getItem("user"))
+      .get()
+      .then((data) => {
+        data.forEach((doc) => {
+          let currentUser = {
+            userId: doc.id,
+            email: doc.data().email,
+            gender: doc.data().gender,
+            nameUser: doc.data().nameUser,
+            date: doc.data().date,
+            avatar: doc.data().avatar,
+            password : doc.data().password
+          };
+          fetchCurrentUser(currentUser);
+        });
+      });
+  }
 
   //logout
   handleLogout = () => {
@@ -89,12 +120,12 @@ class Header extends Component {
         onClose={this.handleMenuClose}
         style={{ marginTop: "30px" }}
       >
-        <Link to="/home/profile" style={{color:'#000000'}} className={classes.link}>
-          <MenuItem
-            className={classes.menuLinkActive}
-          >
-            Your Profile
-          </MenuItem>
+        <Link
+          to="/home/profile"
+          style={{ color: "#000000" }}
+          className={classes.link}
+        >
+          <MenuItem className={classes.menuLinkActive}>Your Profile</MenuItem>
         </Link>
         <MenuItem
           className={classes.menuLinkActive}
@@ -161,7 +192,7 @@ class Header extends Component {
                 size="small"
               >
                 <Avatar
-                  src={currentUser.linkImage}
+                  src={currentUser.avatar}
                   style={{ marginBottom: "5px" }}
                 />
                 <Typography style={{ fontSize: "17px" }}>
@@ -269,4 +300,19 @@ Header.propTypes = {
   handleLogout: propTypes.func,
 };
 
-export default withStyles(styles)(withRouter(Header));
+// const mapStateToProps = (state) => {
+//   return {
+//     currentUser: state.user.currentUser,
+//   };
+// };
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    userActionsCreator: bindActionCreators(userActions, dispatch),
+  };
+};
+
+export default compose(
+  withStyles(styles),
+  connect(null, mapDispatchToProps)
+)(withRouter(Header));

@@ -39,7 +39,7 @@ class Login extends Component {
     });
   };
 
-  componentDidMount() {
+  componentDidMount () {
     //kết nối đến các tài khoản trên firebase
     //bắt sự kiện thay đổi tài khoản
     const { history } = this.props;
@@ -63,7 +63,8 @@ class Login extends Component {
                 gender: doc.data().gender,
                 nameUser: doc.data().nameUser,
                 date: doc.data().date,
-                linkImage: doc.data().linkImage
+                avatar: doc.data().avatar,
+                password : doc.data().password
               };
               fetchCurrentUser(currentUser);
             });
@@ -124,7 +125,7 @@ class Login extends Component {
                   gender: doc.data().gender,
                   nameUser: doc.data().nameUser,
                   date: doc.data().date,
-                  linkImage: doc.data().linkImage
+                  avatar: doc.data().avatar
                 };
                 fetchCurrentUser(currentUser);
               });

@@ -71,7 +71,7 @@ class News extends Component {
     return (
       <Card className={classes.root}>
         <CardHeader
-          avatar={<Avatar src={news.image} />}
+          avatar={<Avatar src={news.avatar} />}
           action={
             news.email === localStorage.getItem("user") ? (
               <div>
@@ -119,8 +119,8 @@ class News extends Component {
           <strong>{news.content}</strong>
         </CardContent>
 
-        {news.link.length > 1 ? (
-          <CardMedia className={classes.media} image={news.link} />
+        {news.image.length > 1 ? (
+          <CardMedia className={classes.media} image={news.image} />
         ) : (
           ""
         )}

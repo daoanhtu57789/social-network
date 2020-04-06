@@ -586,6 +586,15 @@ const mapStateToProps = (state) => {
     currentUser: state.user.currentUser,
     showLoadingLogin: state.user.showLoadingLogin,
     likeList: state.news.likeList,
+    initialValues: {
+      nameUser: state.user.currentUser.nameUser
+        ? state.user.currentUser.nameUser
+        : null,
+      date: state.user.currentUser.date ? state.user.currentUser.date : null,
+      password: state.user.currentUser.password
+        ? state.user.currentUser.password
+        : null,
+    },
   };
 };
 

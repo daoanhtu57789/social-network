@@ -17,8 +17,7 @@ class DashBoard extends Component {
   UNSAFE_componentWillMount() {
     const { userActionsCreator } = this.props;
     const { fetchCurrentUser } = userActionsCreator;
-    const { userEditing } = userActionsCreator;
-    
+
     //lấy dữ liệu trên firebase có database là likes
     fire
       .firestore()
@@ -34,10 +33,9 @@ class DashBoard extends Component {
             nameUser: doc.data().nameUser,
             date: doc.data().date,
             avatar: doc.data().avatar,
-            password : doc.data().password
+            password: doc.data().password,
           };
           fetchCurrentUser(currentUser);
-          userEditing(currentUser);
         });
       });
   }
@@ -52,7 +50,7 @@ class DashBoard extends Component {
       nameUser: "",
       date: "",
       avatar: "",
-      password : ""
+      password: "",
     });
   };
 

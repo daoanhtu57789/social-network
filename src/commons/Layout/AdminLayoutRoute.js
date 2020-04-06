@@ -7,8 +7,8 @@ import { bindActionCreators } from "redux";
 import * as userActions from "./../../actions/user";
 class AdminLayoutRoute extends Component {
   handleUpdateAvatar = (link) => {
-    const{userActionsCreators} = this.props;
-    const {addAvatarUserSuccess} = userActionsCreators;
+    const { userActionsCreators } = this.props;
+    const { addAvatarUserSuccess } = userActionsCreators;
     addAvatarUserSuccess(link);
   };
   render() {
@@ -39,7 +39,7 @@ class AdminLayoutRoute extends Component {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    userActionsCreators: bindActionCreators(userActions, dispatch)
+    userActionsCreators: bindActionCreators(userActions, dispatch),
   };
 };
 

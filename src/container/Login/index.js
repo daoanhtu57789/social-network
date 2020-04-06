@@ -28,65 +28,45 @@ class Login extends Component {
     this.state = {
       email: "",
       password: "",
-      errors: {}
+      errors: {},
     };
   }
   //sự kiện thay đổi bàn phím
 
-  handleChange = e => {
+  handleChange = (e) => {
     this.setState({
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
-  componentDidMount () {
+  componentDidMount() {
     //kết nối đến các tài khoản trên firebase
     //bắt sự kiện thay đổi tài khoản
     const { history } = this.props;
-    fire.auth().onAuthStateChanged(user => {
+    fire.auth().onAuthStateChanged((user) => {
       if (user) {
         localStorage.setItem("user", user.email);
-        const { userActionsCreator, newsActionsCreator } = this.props;
-        const { fetchCurrentUser } = userActionsCreator;
+        const { newsActionsCreator } = this.props;
         const { fetchLikeSuccess, fetchLikeFailed } = newsActionsCreator;
-        //lấy dữ liệu trên firebase có database là videos
-        fire
-          .firestore()
-          .collection("user")
-          .where("email", "==", user.email)
-          .get()
-          .then(data => {
-            data.forEach(doc => {
-              let currentUser = {
-                userId: doc.id,
-                email: doc.data().email,
-                gender: doc.data().gender,
-                nameUser: doc.data().nameUser,
-                date: doc.data().date,
-                avatar: doc.data().avatar,
-                password : doc.data().password
-              };
-              fetchCurrentUser(currentUser);
-            });
-          });
+
         //lấy dữ liệu trên firebase có database là videos
         fire
           .firestore()
           .collection("likes")
           .where("email", "==", user.email)
           .get()
-          .then(data => {
+          .then((data) => {
             const likeList = [];
-            data.forEach(doc => {
+            data.forEach((doc) => {
               likeList.push({
                 likeId: doc.id,
                 email: doc.data().email,
-                newsId: doc.data().newsId
+                newsId: doc.data().newsId,
               });
             });
             fetchLikeSuccess(likeList);
           })
-          .catch(err => {
+          .catch((err) => {
             fetchLikeFailed(err);
           });
         history.push("/home");
@@ -97,65 +77,69 @@ class Login extends Component {
     });
   }
 
-  handleSubmit = event => {
+  handleSubmit = (event) => {
     event.preventDefault();
-    const { uiActionCreators, history } = this.props;
+    const {
+      uiActionCreators,
+      history,
+      userActionsCreator,
+      newsActionsCreator,
+    } = this.props;
     const { showLoadingLogin, hideLoadingLogin } = uiActionCreators;
+    const { fetchCurrentUser } = userActionsCreator;
+    const { fetchLikeSuccess, fetchLikeFailed } = newsActionsCreator;
+    //lấy dữ liệu trên firebase có database là videos
+    fire
+      .firestore()
+      .collection("user")
+      .where("email", "==", this.state.email)
+      .get()
+      .then((data) => {
+        data.forEach((doc) => {
+          let currentUser = {
+            userId: doc.id,
+            email: doc.data().email,
+            gender: doc.data().gender,
+            nameUser: doc.data().nameUser,
+            date: doc.data().date,
+            avatar: doc.data().avatar,
+            password: doc.data().password,
+          };
+          fetchCurrentUser(currentUser);
+        });
+      });
     showLoadingLogin();
     fire
       .auth()
       .signInWithEmailAndPassword(this.state.email, this.state.password)
-      .then(u => {
+      .then((u) => {
         hideLoadingLogin();
         if (history) {
-          const { userActionsCreator, newsActionsCreator } = this.props;
-          const { fetchCurrentUser } = userActionsCreator;
-          const { fetchLikeSuccess, fetchLikeFailed } = newsActionsCreator;
-          //lấy dữ liệu trên firebase có database là videos
-          fire
-            .firestore()
-            .collection("user")
-            .where("email", "==", this.state.email)
-            .get()
-            .then(data => {
-              data.forEach(doc => {
-                let currentUser = {
-                  userId: doc.id,
-                  email: doc.data().email,
-                  gender: doc.data().gender,
-                  nameUser: doc.data().nameUser,
-                  date: doc.data().date,
-                  avatar: doc.data().avatar
-                };
-                fetchCurrentUser(currentUser);
-              });
-            });
-
           //lấy dữ liệu trên firebase có database là likes
           fire
             .firestore()
             .collection("likes")
             .where("email", "==", this.state.email)
             .get()
-            .then(data => {
+            .then((data) => {
               const likeList = [];
-              data.forEach(doc => {
+              data.forEach((doc) => {
                 likeList.push({
                   likeId: doc.id,
                   email: doc.data().email,
-                  newsId: doc.data().newsId
+                  newsId: doc.data().newsId,
                 });
               });
               fetchLikeSuccess(likeList);
             })
-            .catch(err => {
+            .catch((err) => {
               fetchLikeFailed(err);
             });
 
           history.push("/home");
         }
       })
-      .catch(error => {
+      .catch((error) => {
         alert(error.message);
         hideLoadingLogin();
       });
@@ -230,21 +214,21 @@ Login.propTypes = {
   history: propTypes.object,
   uiActionCreators: propTypes.shape({
     showLoadingLogin: propTypes.func,
-    hideLoadingLogin: propTypes.func
-  })
+    hideLoadingLogin: propTypes.func,
+  }),
 };
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
-    showLoadingLogin: state.ui.showLoadingLogin
+    showLoadingLogin: state.ui.showLoadingLogin,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     uiActionCreators: bindActionCreators(uiActions, dispatch),
     userActionsCreator: bindActionCreators(userActions, dispatch),
-    newsActionsCreator: bindActionCreators(newsActions, dispatch)
+    newsActionsCreator: bindActionCreators(newsActions, dispatch),
   };
 };
 

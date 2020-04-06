@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import clsx from "clsx";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
-import CardMedia from "@material-ui/core/CardMedia";
 import CardContent from "@material-ui/core/CardContent";
 import CardActions from "@material-ui/core/CardActions";
 import Avatar from "@material-ui/core/Avatar";
@@ -120,7 +119,7 @@ class News extends Component {
         </CardContent>
 
         {news.image.length > 1 ? (
-          <CardMedia className={classes.media} image={news.image} />
+          <img style={{ width:'100%',height:'50%'}} className={classes.media} alt="" src={news.image} />
         ) : (
           ""
         )}

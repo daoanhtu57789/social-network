@@ -58,12 +58,13 @@ class Signup extends Component {
               ? "https://firebasestorage.googleapis.com/v0/b/zero-social-43e41.appspot.com/o/man.png?alt=media&token=23c40781-f7fc-4f16-9114-a6eea27850ee"
               : "https://firebasestorage.googleapis.com/v0/b/zero-social-43e41.appspot.com/o/woman.jpg?alt=media&token=ee7639c0-fcb3-4f34-9111-1c2242e6802b"
           };
-          console.log(newUser);
-          fetchCurrentUser(newUser);
+          
           fire
             .firestore()
             .collection("user")
-            .add(newUser);
+            .add(newUser).then(doc => {
+              fetchCurrentUser({userId : doc.id,...newUser}); 
+            })
           hideLoadingSignup();
         })
         .catch(error => {

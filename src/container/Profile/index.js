@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 //css
 import { withStyles } from "@material-ui/core/styles";
 import styles from "./styles";
@@ -8,7 +8,7 @@ import propTypes from "prop-types";
 import WcIcon from "@material-ui/icons/Wc";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
-import { CircularProgress } from "@material-ui/core";
+import { TextField } from "@material-ui/core";
 import Container from "@material-ui/core/Container";
 import { Grid, Button, Avatar } from "@material-ui/core";
 //icon
@@ -17,11 +17,8 @@ import IconButton from "@material-ui/core/IconButton";
 import PhotoCamera from "@material-ui/icons/PhotoCamera";
 import VisibilityIcon from "@material-ui/icons/Visibility";
 import VisibilityOffIcon from "@material-ui/icons/VisibilityOff";
-
-import FormControl from "@material-ui/core/FormControl";
 //redux-form
-import { Field, reduxForm } from "redux-form";
-import renderTextField from "./../../component/FormHelper/TextField/index";
+import { reduxForm } from "redux-form";
 //redux
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
@@ -33,38 +30,39 @@ import fire from "./../../config/Fire";
 class Profile extends Component {
   constructor(props) {
     super(props);
+    const { currentUser } = this.props;
     this.state = {
       image: null,
       url: "",
       progress: 0,
       nam: false,
       nu: false,
-      checkednam: false,
-      checkednu: false,
+      checkednam: currentUser.gender === "nu" ? true : false,
+      checkednu: currentUser.gender === "nu" ? false : true,
     };
   }
   handleChange = (event) => {
     if (event.target.name === "nam" && event.target.checked) {
       this.setState({
         [event.target.name]: event.target.checked,
-        checkednu: true,
+        checkednu: false,
       });
     } else if (event.target.name === "nu" && event.target.checked) {
       this.setState({
         [event.target.name]: event.target.checked,
-        checkednam: true,
+        checkednam: false,
       });
     }
 
     if (event.target.name === "nam" && !event.target.checked) {
       this.setState({
         [event.target.name]: event.target.checked,
-        checkednu: false,
+        checkednu: true,
       });
     } else if (event.target.name === "nu" && !event.target.checked) {
       this.setState({
         [event.target.name]: event.target.checked,
-        checkednam: false,
+        checkednam: true,
       });
     }
   };
@@ -75,6 +73,31 @@ class Profile extends Component {
       this.setState({ image });
     }
   };
+
+  componentDidMount() {
+    const { userActionsCreators } = this.props;
+    const { fetchCurrentUser } = userActionsCreators;
+    //lấy dữ liệu trên firebase có database là videos
+    fire
+      .firestore()
+      .collection("user")
+      .where("email", "==", localStorage.getItem("user"))
+      .get()
+      .then((data) => {
+        data.forEach((doc) => {
+          let currentUser = {
+            userId: doc.id,
+            email: doc.data().email,
+            gender: doc.data().gender,
+            nameUser: doc.data().nameUser,
+            date: doc.data().date,
+            avatar: doc.data().avatar,
+            password: doc.data().password,
+          };
+          fetchCurrentUser(currentUser);
+        });
+      });
+  }
 
   //update ảnh
   onUpdateAvatar = (data) => {
@@ -168,14 +191,7 @@ class Profile extends Component {
     console.log(data);
   };
   render() {
-    const {
-      classes,
-      handleSubmit,
-      showLoadingSignup,
-      invalid,
-      submitting,
-      currentUser,
-    } = this.props;
+    const { classes, handleSubmit, currentUser } = this.props;
     return (
       <Grid container spacing={2} style={{ marginTop: "70px" }}>
         <Grid item md={2} xs={12}></Grid>
@@ -241,36 +257,36 @@ class Profile extends Component {
           <h2 style={{ textAlign: "center" }}>
             <strong>Thông Tin</strong>
           </h2>
-          <form onSubmit={handleSubmit(this.handleSubmit)}>
-            <Field
-              id="nameUser"
-              name="nameUser"
-              type="text"
-              label="Name"
-              className={classes.textField}
-              fullWidth
-              component={renderTextField}
-            />
-            <Field
-              id="date"
-              name="date"
-              type="date"
-              label="Birthday"
-              className={classes.textField}
-              fullWidth
-              component={renderTextField}
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-            <Grid container>
-              <Grid item sm>
-                <FormControl>
-                  {currentUser.gender === "nam" ? (
+          {currentUser.nameUser.length > 0 ? (
+            <Fragment>
+              <TextField
+                id="nameUser"
+                name="nameUser"
+                type="text"
+                label="Name"
+                defaultValue={currentUser.nameUser}
+                className={classes.textField}
+                fullWidth
+              />
+              <TextField
+                id="date"
+                name="date"
+                type="date"
+                label="Birthday"
+                className={classes.textField}
+                fullWidth
+                defaultValue={currentUser.date}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+              <Grid container>
+                <Grid item sm>
+                  {!this.state.checkednam ? (
                     <FormControlLabel
                       control={
                         <Checkbox
-                          checked = {true}
+                          defaultChecked
                           name="nam"
                           onChange={this.handleChange}
                           color="primary"
@@ -291,18 +307,16 @@ class Profile extends Component {
                       label="Nam"
                     />
                   )}
-                </FormControl>
-              </Grid>
-              <Grid item sm>
-                <WcIcon fontSize="large" />
-              </Grid>
-              <Grid item sm>
-                <FormControl>
-                  {currentUser.gender === "nu" ? (
+                </Grid>
+                <Grid item sm>
+                  <WcIcon fontSize="large" />
+                </Grid>
+                <Grid item sm>
+                  {!this.state.checkednu ? (
                     <FormControlLabel
                       control={
                         <Checkbox
-                          checked = {true}
+                          defaultChecked
                           name="nu"
                           onChange={this.handleChange}
                           color="primary"
@@ -323,49 +337,48 @@ class Profile extends Component {
                       label="Nữ"
                     />
                   )}
-                </FormControl>
+                </Grid>
               </Grid>
-            </Grid>
-            <Grid container>
-              <Grid item md={5} xs={6}>
-                <Field
-                  id="password"
-                  name="password"
-                  type="password"
-                  label="Password"
-                  className={classes.textField}
-                  fullWidth
-                  component={renderTextField}
-                />
-              </Grid>
-              <Grid item md={1} xs={6}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  type="button"
-                  className={classes.button}
-                  style={{ marginTop: "15px" }}
-                >
-                  <VisibilityOffIcon fontSize="small" />
-                </Button>
-              </Grid>
-            </Grid>
 
-            <Button
-              disabled={invalid || submitting || showLoadingSignup}
-              variant="contained"
-              color="primary"
-              type="submit"
-              style={{ width: "100%", marginLeft: "auto" }}
-              className={classes.button}
-            >
-              <CloudUploadIcon fontSize="small" />
-              Lưu
-              {showLoadingSignup && (
-                <CircularProgress size={30} className={classes.progress} />
-              )}
-            </Button>
-          </form>
+              <Grid container>
+                <Grid item md={5} xs={6}>
+                  <TextField
+                    id="password"
+                    name="password"
+                    type="password"
+                    label="Password"
+                    defaultValue={currentUser.password}
+                    className={classes.textField}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item md={1} xs={6}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    type="button"
+                    className={classes.button}
+                    style={{ marginTop: "15px" }}
+                  >
+                    <VisibilityOffIcon fontSize="small" />
+                  </Button>
+                </Grid>
+              </Grid>
+
+              <Button
+                variant="contained"
+                color="primary"
+                type="button"
+                style={{ width: "100%", marginLeft: "auto" }}
+                className={classes.button}
+              >
+                <CloudUploadIcon fontSize="small" />
+                Lưu
+              </Button>
+            </Fragment>
+          ) : (
+            <strong>Loading...</strong>
+          )}
         </Grid>
         <Grid item md={2} xs={12}></Grid>
       </Grid>
@@ -380,7 +393,6 @@ Profile.propTypes = {
     addAvatarUserFailed: propTypes.func,
     updateUserSuccess: propTypes.func,
     updateUserFailed: propTypes.func,
-    userEditing: propTypes.func,
   }),
   handleSubmit: propTypes.func,
   invalid: propTypes.bool,
@@ -390,26 +402,8 @@ Profile.propTypes = {
 };
 
 const mapStateToProps = (state) => {
-  if (state.user.userEditing.nameUser !== undefined) {
-    return {
-      showLoadingSignup: state.ui.showLoadingSignup,
-      currentUser: state.user.currentUser,
-      userEditing: state.user.userEditing,
-      initialValues: {
-        nameUser: state.user.userEditing
-          ? state.user.userEditing.nameUser
-          : null,
-        date: state.user.userEditing ? state.user.userEditing.date : null,
-        password: state.user.userEditing
-          ? state.user.userEditing.password
-          : null,
-      },
-    };
-  }
   return {
-    showLoadingSignup: state.ui.showLoadingSignup,
     currentUser: state.user.currentUser,
-    userEditing: state.user.userEditing,
   };
 };
 

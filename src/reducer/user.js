@@ -8,8 +8,8 @@ const initialState = {
     nameUser: "",
     date: "",
     avatar: "",
-  },
-  userEditing: {},
+    password : ""
+  }
 };
 
 const reducer = (state = initialState, action) => {
@@ -54,15 +54,6 @@ const reducer = (state = initialState, action) => {
       console.error(error);
       return {
         ...state,
-      };
-    }
-
-    //Đổi Avatar
-    case userConstants.USER_EDITING: {
-      const { data } = action.payload;
-      return {
-        ...state,
-        userEditing: data,
       };
     }
 

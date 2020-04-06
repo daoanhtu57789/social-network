@@ -64,32 +64,6 @@ class Header extends Component {
     });
   };
 
-  //load lại truowsc khi render
-  UNSAFE_componentWillMount () {
-    const { userActionsCreator } = this.props;
-    const { fetchCurrentUser } = userActionsCreator;
-    //lấy dữ liệu trên firebase có database là videos
-    fire
-      .firestore()
-      .collection("user")
-      .where("email", "==", localStorage.getItem("user"))
-      .get()
-      .then((data) => {
-        data.forEach((doc) => {
-          let currentUser = {
-            userId: doc.id,
-            email: doc.data().email,
-            gender: doc.data().gender,
-            nameUser: doc.data().nameUser,
-            date: doc.data().date,
-            avatar: doc.data().avatar,
-            password : doc.data().password
-          };
-          fetchCurrentUser(currentUser);
-        });
-      });
-  }
-
   //logout
   handleLogout = () => {
     const { handleLogout } = this.props;
@@ -300,11 +274,6 @@ Header.propTypes = {
   handleLogout: propTypes.func,
 };
 
-// const mapStateToProps = (state) => {
-//   return {
-//     currentUser: state.user.currentUser,
-//   };
-// };
 
 const mapDispatchToProps = (dispatch) => {
   return {

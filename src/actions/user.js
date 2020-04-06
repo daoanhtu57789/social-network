@@ -45,12 +45,3 @@ export const updateUserFailed = (error) => {
     },
   };
 };
-
-export const userEditing = (data) => {
-  return {
-    type: userConstants.USER_EDITING,
-    payload: {
-      data,
-    },
-  };
-};

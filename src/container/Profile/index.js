@@ -17,12 +17,9 @@ import IconButton from "@material-ui/core/IconButton";
 import PhotoCamera from "@material-ui/icons/PhotoCamera";
 import VisibilityIcon from "@material-ui/icons/Visibility";
 import VisibilityOffIcon from "@material-ui/icons/VisibilityOff";
-//redux-form
-import { reduxForm } from "redux-form";
 //redux
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
-import * as uiActions from "./../../actions/ui";
 import * as userActions from "./../../actions/user";
 import { compose } from "redux";
 //firebase
@@ -30,15 +27,18 @@ import fire from "./../../config/Fire";
 class Profile extends Component {
   constructor(props) {
     super(props);
-    const { currentUser } = this.props;
     this.state = {
       image: null,
       url: "",
       progress: 0,
       nam: false,
       nu: false,
-      checkednam: currentUser.gender === "nu" ? true : false,
-      checkednu: currentUser.gender === "nu" ? false : true,
+      checkednam: false,
+      checkednu: false,
+      nameUser: "",
+      date: "",
+      password: "",
+      showPassword: false,
     };
   }
   handleChange = (event) => {
@@ -74,10 +74,14 @@ class Profile extends Component {
     }
   };
 
-  componentDidMount() {
-    const { userActionsCreators } = this.props;
-    const { fetchCurrentUser } = userActionsCreators;
-    //lấy dữ liệu trên firebase có database là videos
+  //lấy dữ liệu thay đổi
+  handleChangeContent = (event) => {
+    this.setState({
+      [event.target.name]: event.target.value,
+    });
+  };
+
+  UNSAFE_componentWillMount() {
     fire
       .firestore()
       .collection("user")
@@ -85,38 +89,27 @@ class Profile extends Component {
       .get()
       .then((data) => {
         data.forEach((doc) => {
-          let currentUser = {
-            userId: doc.id,
-            email: doc.data().email,
-            gender: doc.data().gender,
-            nameUser: doc.data().nameUser,
-            date: doc.data().date,
-            avatar: doc.data().avatar,
-            password: doc.data().password,
-          };
-          fetchCurrentUser(currentUser);
+          this.setState({
+            nam: doc.data().gender === "nam" ? true : false,
+            nu: doc.data().gender === "nu" ? true : false,
+            checkednam: doc.data().gender === "nam" ? true : false,
+            checkednu: doc.data().gender === "nu" ? true : false,
+          });
         });
       });
   }
 
   //update ảnh
-  onUpdateAvatar = (data) => {
-    const {
-      currentUser,
-      userActionsCreators,
-      uiActionsCreators,
-      handleUpdateAvatar,
-    } = this.props;
+  onUpdateAvatar = () => {
+    const { currentUser, userActionsCreators } = this.props;
     const { addAvatarUserSuccess, addAvatarUserFailed } = userActionsCreators;
-    const { hideLoadingLogin, showLoadingLogin } = uiActionsCreators;
     const { image } = this.state;
-    //
+    //lấy dữ liệu trên firebase có database là videos
     if (image) {
       const uploadTask = fire
         .storage()
         .ref(`${image.name}`) //tên để image để lấy dữ liệu
         .put(image); //file image để put lên storage
-      showLoadingLogin();
       uploadTask.on(
         "state_changed",
         (snapshot) => {
@@ -139,14 +132,33 @@ class Profile extends Component {
             .child(image.name)
             .getDownloadURL()
             .then((link) => {
-              addAvatarUserSuccess(link);
-              handleUpdateAvatar(link);
               //update db vào firebase
               fire
                 .firestore()
                 .collection("user")
                 .doc(`${currentUser.userId}`)
                 .update({ avatar: link })
+                .then((doc) => {
+                  fire
+                    .firestore()
+                    .collection("user")
+                    .where("email", "==", localStorage.getItem("user"))
+                    .get()
+                    .then((data) => {
+                      data.forEach((doc) => {
+                        let currentUsers = {
+                          userId: doc.id,
+                          email: doc.data().email,
+                          gender: doc.data().gender,
+                          nameUser: doc.data().nameUser,
+                          date: doc.data().date,
+                          avatar: doc.data().avatar,
+                          password: doc.data().password,
+                        };
+                        addAvatarUserSuccess(currentUsers);
+                      });
+                    });
+                })
                 .catch((err) => {
                   console.log(err);
                 });
@@ -169,8 +181,6 @@ class Profile extends Component {
                   });
                 });
 
-              hideLoadingLogin();
-
               this.setState({
                 image: null,
                 url: "",
@@ -185,13 +195,106 @@ class Profile extends Component {
       );
     }
   };
-  //lấy user đang sửa
-  //submit
-  handleSubmit = (data) => {
-    console.log(data);
+  //sửa profile
+  handleUpdateUser = () => {
+    const { currentUser, userActionsCreators } = this.props;
+    const { updateUserSuccess, updateUserFailed } = userActionsCreators;
+    const { fetchCurrentUser } = userActionsCreators;
+    //lấy dữ liệu trên firebase có database là videos
+    fire
+      .firestore()
+      .collection("user")
+      .where("email", "==", localStorage.getItem("user"))
+      .get()
+      .then((data) => {
+        data.forEach((doc) => {
+          let currentUsers = {
+            userId: doc.id,
+            email: doc.data().email,
+            gender: doc.data().gender,
+            nameUser: doc.data().nameUser,
+            date: doc.data().date,
+            avatar: doc.data().avatar,
+            password: doc.data().password,
+          };
+          fetchCurrentUser(currentUsers);
+          if (!this.state.nameUser.length > 0) {
+            this.setState({ nameUser: currentUsers.nameUser });
+          }
+          if (!this.state.date.length > 0) {
+            this.setState({ date: currentUsers.date });
+          }
+          if (!this.state.password.length > 0) {
+            this.setState({ password: currentUsers.password });
+          }
+        });
+      });
+    fire
+      .auth()
+      .signInWithEmailAndPassword(
+        localStorage.getItem("user"),
+        currentUser.password
+      )
+      .then((user) => {
+        fire
+          .auth()
+          .currentUser.updatePassword(this.state.password)
+          .then(() => {
+            fire
+              .firestore()
+              .collection("user")
+              .doc(`${currentUser.userId}`)
+              .update({
+                nameUser: this.state.nameUser,
+                date: this.state.date,
+                password: this.state.password,
+                gender: this.state.nam ? "nam" : "nu",
+              })
+              .then((doc) => {
+                updateUserSuccess({
+                  nameUser: this.state.nameUser,
+                  date: this.state.date,
+                  password: this.state.password,
+                  gender: this.state.nam ? "nam" : "nu",
+                });
+                fire
+                  .firestore()
+                  .collection("news")
+                  .where("email", "==", localStorage.getItem("user"))
+                  .get()
+                  .then((data) => {
+                    data.forEach((doc) => {
+                      fire
+                        .firestore()
+                        .collection("news")
+                        .doc(`${doc.id}`)
+                        .update({ nameUser: this.state.nameUser })
+                        .catch((err) => {
+                          console.error(err);
+                        });
+                    });
+                  })
+                  .catch((err) => {
+                    console.error(err);
+                  });
+              })
+              .catch((err) => {
+                console.error(err);
+                updateUserFailed(err);
+              });
+          })
+          .catch((err) => {
+            console.error(err);
+            updateUserFailed(err);
+          });
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
+
   render() {
-    const { classes, handleSubmit, currentUser } = this.props;
+    const { classes, currentUser } = this.props;
     return (
       <Grid container spacing={2} style={{ marginTop: "70px" }}>
         <Grid item md={2} xs={12}></Grid>
@@ -199,59 +302,57 @@ class Profile extends Component {
           <h2 style={{ textAlign: "center" }}>
             <strong>Ảnh Đại Diện</strong>
           </h2>
-          <form onSubmit={handleSubmit(this.onUpdateAvatar)}>
-            <Container fixed>
-              <Avatar
-                style={{ width: "100%", height: "100%" }}
-                src={currentUser.avatar}
-              />
+          <Container fixed>
+            <Avatar
+              src={currentUser.avatar}
+              style={{ width: "100%", height: "100%" }}
+            />
 
-              <Grid container>
-                <Grid item md={3} xs={6}></Grid>
-                <Grid item md={2} xs={6}>
-                  <div style={{ marginLeft: "40px" }}>
-                    <input
-                      className={classes.input}
-                      id="icon-button-file"
-                      type="file"
-                      onChange={this.handleChangeFile}
-                    />
-                    <label htmlFor="icon-button-file">
-                      <IconButton
-                        color="primary"
-                        aria-label="upload picture"
-                        component="span"
-                      >
-                        <PhotoCamera fontSize="large" />
-                      </IconButton>
-                    </label>
-                  </div>
+            <Grid container>
+              <Grid item md={3} xs={6}></Grid>
+              <Grid item md={2} xs={6}>
+                <div style={{ marginLeft: "40px" }}>
+                  <input
+                    className={classes.input}
+                    id="icon-button-file"
+                    type="file"
+                    onChange={this.handleChangeFile}
+                  />
+                  <label htmlFor="icon-button-file">
+                    <IconButton
+                      color="primary"
+                      aria-label="upload picture"
+                      component="span"
+                    >
+                      <PhotoCamera fontSize="large" />
+                    </IconButton>
+                  </label>
+                </div>
 
-                  <div>
-                    <progress
-                      value={this.state.progress}
-                      max="100"
-                      style={{ height: "20px" }}
-                    />
-                  </div>
-                </Grid>
-                <Grid item md={1} xs={6}></Grid>
+                <div>
+                  <progress
+                    value={this.state.progress}
+                    max="100"
+                    style={{ height: "20px" }}
+                  />
+                </div>
               </Grid>
+              <Grid item md={1} xs={6}></Grid>
+            </Grid>
 
-              <Button
-                variant="contained"
-                color="primary"
-                className={classes.button}
-                style={{ width: "100%", marginLeft: "auto" }}
-                size="small"
-                type="submit"
-                onClick={this.onUpdateAvatar}
-              >
-                <CloudUploadIcon fontSize="small" />
-                Lưu
-              </Button>
-            </Container>
-          </form>
+            <Button
+              variant="contained"
+              color="primary"
+              className={classes.button}
+              style={{ width: "100%", marginLeft: "auto" }}
+              size="small"
+              type="button"
+              onClick={this.onUpdateAvatar}
+            >
+              <CloudUploadIcon fontSize="small" />
+              Lưu
+            </Button>
+          </Container>
         </Grid>
         <Grid item md={5} xs={12}>
           <h2 style={{ textAlign: "center" }}>
@@ -267,6 +368,7 @@ class Profile extends Component {
                 defaultValue={currentUser.nameUser}
                 className={classes.textField}
                 fullWidth
+                onChange={this.handleChangeContent}
               />
               <TextField
                 id="date"
@@ -279,14 +381,14 @@ class Profile extends Component {
                 InputLabelProps={{
                   shrink: true,
                 }}
+                onChange={this.handleChangeContent}
               />
               <Grid container>
                 <Grid item sm>
-                  {!this.state.checkednam ? (
+                  {this.state.checkednam ? (
                     <FormControlLabel
                       control={
                         <Checkbox
-                          defaultChecked
                           name="nam"
                           onChange={this.handleChange}
                           color="primary"
@@ -312,11 +414,10 @@ class Profile extends Component {
                   <WcIcon fontSize="large" />
                 </Grid>
                 <Grid item sm>
-                  {!this.state.checkednu ? (
+                  {this.state.checkednu ? (
                     <FormControlLabel
                       control={
                         <Checkbox
-                          defaultChecked
                           name="nu"
                           onChange={this.handleChange}
                           color="primary"
@@ -345,11 +446,12 @@ class Profile extends Component {
                   <TextField
                     id="password"
                     name="password"
-                    type="password"
+                    type={this.state.showPassword ? "text" : "password"}
                     label="Password"
                     defaultValue={currentUser.password}
                     className={classes.textField}
                     fullWidth
+                    onChange={this.handleChangeContent}
                   />
                 </Grid>
                 <Grid item md={1} xs={6}>
@@ -359,8 +461,15 @@ class Profile extends Component {
                     type="button"
                     className={classes.button}
                     style={{ marginTop: "15px" }}
+                    onClick={() => {
+                      this.setState({ showPassword: !this.state.showPassword });
+                    }}
                   >
-                    <VisibilityOffIcon fontSize="small" />
+                    {this.state.showPassword ? (
+                      <VisibilityIcon fontSize="small" />
+                    ) : (
+                      <VisibilityOffIcon fontSize="small" />
+                    )}
                   </Button>
                 </Grid>
               </Grid>
@@ -371,6 +480,7 @@ class Profile extends Component {
                 type="button"
                 style={{ width: "100%", marginLeft: "auto" }}
                 className={classes.button}
+                onClick={this.handleUpdateUser}
               >
                 <CloudUploadIcon fontSize="small" />
                 Lưu
@@ -397,7 +507,6 @@ Profile.propTypes = {
   handleSubmit: propTypes.func,
   invalid: propTypes.bool,
   submitting: propTypes.bool,
-  showLoadingSignup: propTypes.bool,
   currentUser: propTypes.object,
 };
 
@@ -410,18 +519,10 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     userActionsCreators: bindActionCreators(userActions, dispatch),
-    uiActionsCreators: bindActionCreators(uiActions, dispatch),
   };
 };
 
-//kết nối với redux-form
-const FORM_NAME = "TASK_MANAGEMENT";
-const withReduxForm = reduxForm({
-  form: FORM_NAME,
-});
-
 export default compose(
   withStyles(styles),
-  connect(mapStateToProps, mapDispatchToProps),
-  withReduxForm
+  connect(mapStateToProps, mapDispatchToProps)
 )(Profile);

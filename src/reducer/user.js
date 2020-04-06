@@ -8,8 +8,8 @@ const initialState = {
     nameUser: "",
     date: "",
     avatar: "",
-    password : ""
-  }
+    password: "",
+  },
 };
 
 const reducer = (state = initialState, action) => {
@@ -24,11 +24,10 @@ const reducer = (state = initialState, action) => {
     }
     //Đổi Avatar
     case userConstants.ADD_AVATAR_USER_SUCCESS: {
-      const { avatar } = action.payload;
-      state.currentUser.avatar = avatar;
+      const { data } = action.payload;
       return {
         ...state,
-        currentUser: state.currentUser,
+        currentUser: data,
       };
     }
 
@@ -42,10 +41,11 @@ const reducer = (state = initialState, action) => {
 
     //sửa thông tin
     case userConstants.UPDATE_USER_SUCCESS: {
-      const { data } = action.payload;
+      const { gender, nameUser, date, password } = action.payload.data;
+
       return {
         ...state,
-        currentUser: data,
+        currentUser: { ...state.currentUser, gender, nameUser, date, password },
       };
     }
 

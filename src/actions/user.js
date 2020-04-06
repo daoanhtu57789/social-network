@@ -10,11 +10,11 @@ export const fetchCurrentUser = (data) => {
   };
 };
 
-export const addAvatarUserSuccess = (avatar) => {
+export const addAvatarUserSuccess = (data) => {
   return {
     type: userConstants.ADD_AVATAR_USER_SUCCESS,
     payload: {
-      avatar,
+      data
     },
   };
 };

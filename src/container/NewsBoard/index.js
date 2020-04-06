@@ -467,7 +467,7 @@ class NewsBoard extends Component {
   };
 
   render() {
-    const { classes, handleSubmit, showLoadingLogin, currentUser } = this.props;
+    const { classes, handleSubmit, currentUser } = this.props;
     return (
       <Grid container spacing={2} style={{ paddingTop: "10px" }}>
         <Grid item md={3} xs={12}></Grid>
@@ -494,7 +494,6 @@ class NewsBoard extends Component {
                 multiline
                 rows="4"
               />
-
               <Grid container spacing={2} style={{ paddingTop: "10px" }}>
                 <Grid item md={2} xs={12}></Grid>
                 <Grid item md={2} xs={12}></Grid>
@@ -528,16 +527,9 @@ class NewsBoard extends Component {
                       className={classes.button}
                       size="small"
                       type="submit"
-                      disabled={showLoadingLogin}
                     >
                       <AddIcon fontSize="small" />
                       Đăng
-                      {showLoadingLogin && (
-                        <CircularProgress
-                          size={30}
-                          className={classes.progress}
-                        />
-                      )}
                     </Button>
                   </div>
                 </Grid>
@@ -586,15 +578,6 @@ const mapStateToProps = (state) => {
     currentUser: state.user.currentUser,
     showLoadingLogin: state.user.showLoadingLogin,
     likeList: state.news.likeList,
-    initialValues: {
-      nameUser: state.user.currentUser.nameUser
-        ? state.user.currentUser.nameUser
-        : null,
-      date: state.user.currentUser.date ? state.user.currentUser.date : null,
-      password: state.user.currentUser.password
-        ? state.user.currentUser.password
-        : null,
-    },
   };
 };
 

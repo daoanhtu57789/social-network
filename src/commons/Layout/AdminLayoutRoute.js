@@ -2,15 +2,7 @@ import React, { Component } from "react";
 import DashBoard from "./../../component/DashBoard/index";
 
 import { Route } from "react-router-dom";
-import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
-import * as userActions from "./../../actions/user";
 class AdminLayoutRoute extends Component {
-  handleUpdateAvatar = (link) => {
-    const { userActionsCreators } = this.props;
-    const { addAvatarUserSuccess } = userActionsCreators;
-    addAvatarUserSuccess(link);
-  };
   render() {
     //cách 1 viết thông thường
     // const {component,exact,name,path} = this.props;
@@ -25,10 +17,7 @@ class AdminLayoutRoute extends Component {
         render={(routeProps) => {
           return (
             <DashBoard {...remainProps}>
-              <YourComponent
-                handleUpdateAvatar={this.handleUpdateAvatar}
-                {...routeProps}
-              />
+              <YourComponent {...routeProps} />
             </DashBoard>
           );
         }}
@@ -37,10 +26,4 @@ class AdminLayoutRoute extends Component {
   }
 }
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    userActionsCreators: bindActionCreators(userActions, dispatch),
-  };
-};
-
-export default connect(null, mapDispatchToProps)(AdminLayoutRoute);
+export default AdminLayoutRoute;

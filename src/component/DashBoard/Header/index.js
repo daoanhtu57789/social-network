@@ -274,7 +274,6 @@ Header.propTypes = {
   handleLogout: propTypes.func,
 };
 
-
 const mapDispatchToProps = (dispatch) => {
   return {
     userActionsCreator: bindActionCreators(userActions, dispatch),

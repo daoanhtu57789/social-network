@@ -198,8 +198,11 @@ class Profile extends Component {
   //sửa profile
   handleUpdateUser = () => {
     const { currentUser, userActionsCreators } = this.props;
-    const { updateUserSuccess, updateUserFailed } = userActionsCreators;
-    const { fetchCurrentUser } = userActionsCreators;
+    const {
+      updateUserSuccess,
+      updateUserFailed,
+      fetchCurrentUser,
+    } = userActionsCreators;
     //lấy dữ liệu trên firebase có database là videos
     fire
       .firestore()
@@ -503,6 +506,7 @@ Profile.propTypes = {
     addAvatarUserFailed: propTypes.func,
     updateUserSuccess: propTypes.func,
     updateUserFailed: propTypes.func,
+    fetchCurrentUser : propTypes.func
   }),
   handleSubmit: propTypes.func,
   invalid: propTypes.bool,

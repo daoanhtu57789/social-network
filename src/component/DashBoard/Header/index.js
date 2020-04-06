@@ -29,11 +29,6 @@ import clsx from "clsx";
 import fire from "./../../../config/Fire";
 //
 import { withRouter, Link } from "react-router-dom";
-//redux
-import { connect } from "react-redux";
-import { compose } from "redux";
-import { bindActionCreators } from "redux";
-import * as userActions from "./../../../actions/user";
 
 //biến global
 const menuId = "primary-search-account-menu";
@@ -66,8 +61,7 @@ class Header extends Component {
 
   //logout
   handleLogout = () => {
-    const { handleLogout } = this.props;
-    const { history } = this.props;
+    const { handleLogout, history } = this.props;
     fire.auth().signOut();
     handleLogout();
     history.push("/login");
@@ -274,13 +268,4 @@ Header.propTypes = {
   handleLogout: propTypes.func,
 };
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    userActionsCreator: bindActionCreators(userActions, dispatch),
-  };
-};
-
-export default compose(
-  withStyles(styles),
-  connect(null, mapDispatchToProps)
-)(withRouter(Header));
+export default withStyles(styles)(withRouter(Header));

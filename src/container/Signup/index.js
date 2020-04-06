@@ -36,12 +36,12 @@ class Signup extends Component {
     nam: false,
     nu: false,
     checkednam: false,
-    checkednu: false
+    checkednu: false,
   };
-  handleSubmit = data => {
-    const { uiActionCreators, userActionCreators } = this.props;
-    const { showLoadingSignup, hideLoadingSignup } = uiActionCreators;
-    const { fetchCurrentUser } = userActionCreators;
+  handleSubmit = (data) => {
+    const { uiActionsCreators, userActionsCreators } = this.props;
+    const { showLoadingSignup, hideLoadingSignup } = uiActionsCreators;
+    const { fetchCurrentUser } = userActionsCreators;
     showLoadingSignup();
     if (data.password === data.confirmPassword) {
       fire
@@ -56,18 +56,19 @@ class Signup extends Component {
             gender: this.state.nam ? "nam" : "nu",
             avatar: this.state.nam
               ? "https://firebasestorage.googleapis.com/v0/b/zero-social-43e41.appspot.com/o/man.png?alt=media&token=23c40781-f7fc-4f16-9114-a6eea27850ee"
-              : "https://firebasestorage.googleapis.com/v0/b/zero-social-43e41.appspot.com/o/woman.jpg?alt=media&token=ee7639c0-fcb3-4f34-9111-1c2242e6802b"
+              : "https://firebasestorage.googleapis.com/v0/b/zero-social-43e41.appspot.com/o/woman.jpg?alt=media&token=ee7639c0-fcb3-4f34-9111-1c2242e6802b",
           };
-          
+
           fire
             .firestore()
             .collection("user")
-            .add(newUser).then(doc => {
-              fetchCurrentUser({userId : doc.id,...newUser}); 
-            })
+            .add(newUser)
+            .then((doc) => {
+              fetchCurrentUser({ userId: doc.id, ...newUser });
+            });
           hideLoadingSignup();
         })
-        .catch(error => {
+        .catch((error) => {
           console.log(error);
           hideLoadingSignup();
         });
@@ -76,28 +77,28 @@ class Signup extends Component {
     }
   };
 
-  handleChange = event => {
+  handleChange = (event) => {
     if (event.target.name === "nam" && event.target.checked) {
       this.setState({
         [event.target.name]: event.target.checked,
-        checkednu: true
+        checkednu: true,
       });
     } else if (event.target.name === "nu" && event.target.checked) {
       this.setState({
         [event.target.name]: event.target.checked,
-        checkednam: true
+        checkednam: true,
       });
     }
 
     if (event.target.name === "nam" && !event.target.checked) {
       this.setState({
         [event.target.name]: event.target.checked,
-        checkednu: false
+        checkednu: false,
       });
     } else if (event.target.name === "nu" && !event.target.checked) {
       this.setState({
         [event.target.name]: event.target.checked,
-        checkednam: false
+        checkednam: false,
       });
     }
   };
@@ -108,7 +109,7 @@ class Signup extends Component {
       showLoadingSignup,
       handleSubmit,
       invalid,
-      submitting
+      submitting,
     } = this.props;
 
     return (
@@ -147,7 +148,7 @@ class Signup extends Component {
               fullWidth
               component={renderTextField}
               InputLabelProps={{
-                shrink: true
+                shrink: true,
               }}
             />
             <Grid container>
@@ -255,24 +256,28 @@ class Signup extends Component {
 Signup.propTypes = {
   classes: propTypes.object,
   userActionsCreator: propTypes.shape({
-    fetchCurrentUser: propTypes.func
+    fetchCurrentUser: propTypes.func,
   }),
   handleSubmit: propTypes.func,
   invalid: propTypes.bool,
   submitting: propTypes.bool,
-  showLoadingSignup: propTypes.bool
+  showLoadingSignup: propTypes.bool,
+  uiActionsCreators: propTypes.shape({
+    showLoadingSignup: propTypes.func,
+    hideLoadingSignup: propTypes.func,
+  }),
 };
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
-    showLoadingSignup: state.ui.showLoadingSignup
+    showLoadingSignup: state.ui.showLoadingSignup,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    userActionCreators: bindActionCreators(userActions, dispatch),
-    uiActionCreators: bindActionCreators(uiActions, dispatch)
+    userActionsCreators: bindActionCreators(userActions, dispatch),
+    uiActionsCreators: bindActionCreators(uiActions, dispatch),
   };
 };
 
@@ -280,7 +285,7 @@ const mapDispatchToProps = dispatch => {
 const FORM_NAME = "TASK_MANAGEMENT";
 const withReduxForm = reduxForm({
   form: FORM_NAME,
-  validate
+  validate,
 });
 
 export default compose(

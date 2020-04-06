@@ -216,6 +216,13 @@ Login.propTypes = {
     showLoadingLogin: propTypes.func,
     hideLoadingLogin: propTypes.func,
   }),
+  newsActionsCreator: propTypes.shape({
+    fetchLikeSuccess: propTypes.func,
+    fetchLikeFailed: propTypes.func,
+  }),
+  userActionsCreator: propTypes.shape({
+    fetchCurrentUser: propTypes.func,
+  }),
 };
 
 const mapStateToProps = (state) => {

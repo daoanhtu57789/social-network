@@ -72,6 +72,7 @@ DashBoard.propTypes = {
   userActionsCreator: propTypes.shape({
     fetchCurrentUser: propTypes.func,
   }),
+  currentUser:propTypes.object
 };
 
 const mapStateToProps = (state) => {

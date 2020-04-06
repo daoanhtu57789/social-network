@@ -24,7 +24,6 @@ import * as modalActions from "./../../actions/modal";
 import fire from "./../../config/Fire";
 //redux-form
 import { Field, reduxForm } from "redux-form";
-import { CircularProgress } from "@material-ui/core";
 import renderTextField from "./../../component/FormHelper/TextField/index";
 //redux
 import { compose } from "redux";
@@ -258,7 +257,7 @@ class NewsBoard extends Component {
   };
   //Mở form sửa
   onClickEdit = (data) => {
-    const { modalActionsCreators, showLoadingLogin, classes } = this.props;
+    const { modalActionsCreators, classes } = this.props;
     const { showModal, changeTitle, changeModal } = modalActionsCreators;
     showModal();
     changeTitle("Sửa Bài Viết.");
@@ -283,13 +282,9 @@ class NewsBoard extends Component {
           size="small"
           type="button"
           onClick={() => this.handleEdit(data)}
-          disabled={showLoadingLogin}
         >
           <CloudUploadIcon fontSize="small" />
           Sửa
-          {showLoadingLogin && (
-            <CircularProgress size={30} className={classes.progress} />
-          )}
         </Button>
       </Fragment>
     );
@@ -346,14 +341,8 @@ class NewsBoard extends Component {
   //Thêm news
   handleSubmit = (data) => {
     //reset để reset lại form
-    const {
-      newsActionsCreators,
-      uiActionsCreators,
-      currentUser,
-      reset,
-    } = this.props;
+    const { newsActionsCreators, currentUser, reset } = this.props;
     const { addNewsSuccess, addNewsFailed } = newsActionsCreators;
-    const { hideLoadingLogin, showLoadingLogin } = uiActionsCreators;
     //update file xong trước mới update database
     const { image } = this.state;
     //
@@ -362,7 +351,6 @@ class NewsBoard extends Component {
         .storage()
         .ref(`${image.name}`) //tên để image để lấy dữ liệu
         .put(image); //file image để put lên storage
-      showLoadingLogin();
       uploadTask.on(
         "state_changed",
         (snapshot) => {
@@ -408,7 +396,6 @@ class NewsBoard extends Component {
                   });
                 });
               reset();
-              hideLoadingLogin();
 
               this.setState({
                 image: null,
@@ -457,7 +444,6 @@ class NewsBoard extends Component {
 
       //reset lại text field
       reset();
-      hideLoadingLogin();
       this.setState({
         image: null,
         url: "",
@@ -547,19 +533,20 @@ class NewsBoard extends Component {
 NewsBoard.propTypes = {
   classes: propTypes.object,
   newsList: propTypes.array,
+  likeList: propTypes.array,
   newsActionsCreators: propTypes.shape({
-    fetchNewsSuccess: propTypes.func,
-    fetchNewsFailed: propTypes.func,
-    addNewsSuccess: propTypes.func,
-    addNewsFailed: propTypes.func,
-    deleteNewsFailed: propTypes.func,
-    deleteNewsSuccess: propTypes.func,
+    fetchNewsSuccess: propTypes.func, //
+    fetchNewsFailed: propTypes.func, //
+    addNewsSuccess: propTypes.func, //
+    addNewsFailed: propTypes.func, //
+    deleteNewsFailed: propTypes.func, //
+    deleteNewsSuccess: propTypes.func, //
     updateNewsSuccess: propTypes.func,
     updateNewsFailed: propTypes.func,
-    likeNewsSuccess: propTypes.func,
-    likeNewsFailed: propTypes.func,
-    unlikeNewsSuccess: propTypes.func,
-    unlikeNewsFailed: propTypes.func,
+    likeNewsSuccess: propTypes.func, //
+    likeNewsFailed: propTypes.func, //
+    unlikeNewsSuccess: propTypes.func, //
+    unlikeNewsFailed: propTypes.func, //
   }),
   currentUser: propTypes.object,
   uiActionsCreators: propTypes.shape({
@@ -567,16 +554,18 @@ NewsBoard.propTypes = {
     showLoadingLogin: propTypes.func,
   }),
   modalActionsCreators: propTypes.shape({
-    hideLoadingLogin: propTypes.func,
-    showLoadingLogin: propTypes.func,
+    hideModal: propTypes.func,
+    showModal: propTypes.func,
+    changeTitle: propTypes.func,
+    changeModal: propTypes.func,
   }),
+  reset: propTypes.func,
 };
 
 const mapStateToProps = (state) => {
   return {
     newsList: state.news.newsList,
     currentUser: state.user.currentUser,
-    showLoadingLogin: state.user.showLoadingLogin,
     likeList: state.news.likeList,
   };
 };

@@ -1,6 +1,7 @@
 import React, { Component } from "react";
+//check props
+import propTypes from "prop-types";
 import Modal from "@material-ui/core/Modal";
-
 import CloseIcon from "@material-ui/icons/Clear";
 //css
 import styles from "./styles";
@@ -11,7 +12,13 @@ import * as modalActions from "./../../actions/modal";
 import { bindActionCreators } from "redux";
 class CommonModal extends Component {
   render() {
-    const { classes, showModal, title,component, modalActionsCreator } = this.props;
+    const {
+      classes,
+      showModal,
+      title,
+      component,
+      modalActionsCreator,
+    } = this.props;
     const { hideModal } = modalActionsCreator;
     return (
       <Modal open={showModal} onClose={hideModal}>
@@ -22,26 +29,34 @@ class CommonModal extends Component {
             {/* Icon X ở bên phải */}
             <CloseIcon className={classes.icon} onClick={hideModal} />
           </div>
-          <div className ={classes.content}>
-            {component}
-          </div>
+          <div className={classes.content}>{component}</div>
         </div>
       </Modal>
     );
   }
 }
 
-const mapStateToProps = state => {
+CommonModal.propTypes = {
+  showModal: propTypes.bool,
+  title: propTypes.string,
+  component: propTypes.object,
+  classes: propTypes.object,
+  modalActionsCreator: propTypes.shape({
+    hideModal: propTypes.func,
+  }),
+};
+
+const mapStateToProps = (state) => {
   return {
     showModal: state.modal.showModal,
     title: state.modal.title,
-    component: state.modal.component
+    component: state.modal.component,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    modalActionsCreator: bindActionCreators(modalActions, dispatch)
+    modalActionsCreator: bindActionCreators(modalActions, dispatch),
   };
 };
 

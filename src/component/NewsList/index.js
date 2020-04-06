@@ -5,13 +5,20 @@ import propTypes from "prop-types";
 import News from "./../News/index";
 class NewsList extends Component {
   render() {
-    const { newsList, onClickLike,likeList , onClickUnLike,onClickDelete,onClickEdit } = this.props;
+    const {
+      newsList,
+      onClickLike,
+      likeList,
+      onClickUnLike,
+      onClickDelete,
+      onClickEdit,
+    } = this.props;
 
     return (
       <Fragment>
         {newsList.map((news, index) => {
           let color = "default";
-          likeList.forEach(like => {
+          likeList.forEach((like) => {
             if (like.newsId === news.newsId) {
               color = "secondary";
               return 0;
@@ -19,7 +26,7 @@ class NewsList extends Component {
           });
           return (
             <News
-              color ={color}
+              color={color}
               key={index}
               news={news}
               onClickLike={() => onClickLike(news)}
@@ -35,7 +42,12 @@ class NewsList extends Component {
 }
 
 NewsList.propTypes = {
-  newsList: propTypes.array
+  newsList: propTypes.array,
+  onClickLike: propTypes.func,
+  likeList: propTypes.array,
+  onClickUnLike: propTypes.func,
+  onClickDelete: propTypes.func,
+  onClickEdit: propTypes.func,
 };
 
 export default NewsList;

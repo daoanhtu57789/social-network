@@ -119,7 +119,12 @@ class News extends Component {
         </CardContent>
 
         {news.image.length > 1 ? (
-          <img style={{ width:'100%',height:'50%'}} className={classes.media} alt="" src={news.image} />
+          <img
+            style={{ width: "100%", height: "50%" }}
+            className={classes.media}
+            alt=""
+            src={news.image}
+          />
         ) : (
           ""
         )}
@@ -161,7 +166,11 @@ class News extends Component {
 News.propTypes = {
   classes: propTypes.object,
   news: propTypes.object,
-  handleLike: propTypes.func,
+  onClickLike: propTypes.func,
+  onClickUnLike: propTypes.func,
+  color: propTypes.string,
+  onClickDelete: propTypes.func,
+  onClickEdit: propTypes.func,
 };
 
 export default withStyles(styles)(News);

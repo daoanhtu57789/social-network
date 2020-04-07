@@ -9,12 +9,20 @@ const reducer = (state = initialState, action) => {
   switch (action.type) {
     //lấy dữ liệu
     case newsConstants.FETCH_NEWS_SUCCESS: {
-      const { data } = action.payload;
-      // data.sort().reverse();
-      return {
-        ...state,
-        newsList: data,
-      };
+      const { data, email } = action.payload;
+      if (!email) {
+        return {
+          ...state,
+          newsList: data,
+        };
+      } else {
+        const newsList = state.newsList.filter((news) => news.email === email);
+
+        return {
+          ...state,
+          newsList: newsList,
+        };
+      }
     }
     case newsConstants.FETCH_NEWS_FAILED: {
       const { err } = action.payload;

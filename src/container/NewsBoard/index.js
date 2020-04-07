@@ -14,19 +14,21 @@ import NewsList from "../../component/NewsList/index";
 //kết nối đến store
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
+//redux
+import { compose } from "redux";
 //kiểm tra dữ liệu nhận vào
 import propTypes from "prop-types";
 //actions
 import * as newsActions from "./../../actions/news";
 import * as uiActions from "./../../actions/ui";
 import * as modalActions from "./../../actions/modal";
+import * as friendActions from "./../../actions/friend";
 //firebase
 import fire from "./../../config/Fire";
 //redux-form
 import { Field, reduxForm } from "redux-form";
 import renderTextField from "./../../component/FormHelper/TextField/index";
-//redux
-import { compose } from "redux";
+import { withRouter } from "react-router-dom";
 
 class NewsBoard extends Component {
   constructor(props) {
@@ -311,6 +313,120 @@ class NewsBoard extends Component {
         updateNewsFailed(err);
       });
   };
+  //xem thông tin bạn bè
+  onOpenFriendProfile = (dataFriend) => {
+    const { history } = this.props;
+    if (dataFriend.email === localStorage.getItem("user")) {
+      history.push("/home/profile");
+    } else {
+      const { friendActionsCreators, newsActionsCreators } = this.props;
+      const {
+        fetchFriendProfileSuccess,
+        fetchFriendProfileFailed,
+      } = friendActionsCreators;
+      const {
+        fetchNewsSuccess,
+        fetchNewsFailed,
+        fetchLikeSuccess,
+        fetchLikeFailed,
+      } = newsActionsCreators;
+      fire
+        .firestore()
+        .collection("user")
+        .where("email", "==", dataFriend.email)
+        .get()
+        .then((data) => {
+          data.forEach((doc) => {
+            localStorage.setItem("friend", doc.data().email);
+            let currentFriend = {
+              friendId: doc.id,
+              email: doc.data().email,
+              gender: doc.data().gender,
+              nameFriend: doc.data().nameUser,
+              date: doc.data().date,
+              avatar: doc.data().avatar,
+            };
+            fetchFriendProfileSuccess(currentFriend);
+          });
+          fetchNewsSuccess(null, localStorage.getItem("friend"));
+          fire
+            .firestore()
+            .collection("likes")
+            .where("email", "==", localStorage.getItem("user"))
+            .get()
+            .then((data) => {
+              const likeList = [];
+              data.forEach((doc) => {
+                likeList.push({
+                  likeId: doc.id,
+                  email: doc.data().email,
+                  newsId: doc.data().newsId,
+                });
+              });
+              fetchLikeSuccess(likeList);
+              history.push("/home/friend");
+            })
+            .catch((err) => {
+              fetchLikeFailed(err);
+            });
+        })
+        .catch((error) => {
+          fetchFriendProfileFailed(error);
+          console.error(error);
+        });
+      // fire
+      //   .firestore()
+      //   .collection("news")
+      //   .orderBy("createdAt", "desc")
+      //   .get()
+      //   .then((data) => {
+      //     // let news = [];
+      //     // data.forEach((doc) => {
+      //     //   if (doc.data().email === dataFriend.email) {
+      //     //     news.push({
+      //     //       newsId: doc.id,
+      //     //       email: doc.data().email,
+      //     //       nameUser: doc.data().nameUser,
+      //     //       image: doc.data().image,
+      //     //       content: doc.data().content,
+      //     //       createdAt: doc.data().createdAt,
+      //     //       shareCount: doc.data().shareCount,
+      //     //       likeCount: doc.data().likeCount,
+      //     //       commentCount: doc.data().commentCount,
+      //     //       avatar: doc.data().avatar,
+      //     //       nameImage: doc.data().nameImage,
+      //     //     });
+      //     //   }
+      //     // });
+      //     fetchNewsSuccess(,);
+      //     //lấy dữ liệu trên firebase có database là likes
+      //     fire
+      //       .firestore()
+      //       .collection("likes")
+      //       .where("email", "==", localStorage.getItem("user"))
+      //       .get()
+      //       .then((data) => {
+      //         const likeList = [];
+      //         data.forEach((doc) => {
+      //           likeList.push({
+      //             likeId: doc.id,
+      //             email: doc.data().email,
+      //             newsId: doc.data().newsId,
+      //           });
+      //         });
+      //         fetchLikeSuccess(likeList);
+      //         history.push("/home/friend");
+      //       })
+      //       .catch((err) => {
+      //         fetchLikeFailed(err);
+      //       });
+      //   })
+      //   .catch((err) => {
+      //     console.log(err);
+      //     fetchNewsFailed(err);
+      //   });
+    }
+  };
   renderNewsList = () => {
     const { newsList, likeList } = this.props;
     let xhtml = null;
@@ -323,6 +439,7 @@ class NewsBoard extends Component {
           onClickUnLike={this.onClickUnLike}
           onClickDelete={this.onClickDelete}
           onClickEdit={this.onClickEdit}
+          onOpenFriendProfile={this.onOpenFriendProfile}
         />
       );
     } else {
@@ -455,7 +572,7 @@ class NewsBoard extends Component {
   render() {
     const { classes, handleSubmit, currentUser } = this.props;
     return (
-      <Grid container spacing={2} style={{ paddingTop: "10px" }}>
+      <Grid container spacing={2}>
         <Grid item md={3} xs={12}></Grid>
         <Grid item md={6} xs={12}>
           <form onSubmit={handleSubmit(this.handleSubmit)}>
@@ -481,9 +598,9 @@ class NewsBoard extends Component {
                 rows="4"
               />
               <Grid container spacing={2} style={{ paddingTop: "10px" }}>
+                <Grid item md={1} xs={12}></Grid>
                 <Grid item md={2} xs={12}></Grid>
-                <Grid item md={2} xs={12}></Grid>
-                <Grid item md={8} xs={12}>
+                <Grid item md={9} xs={12}>
                   <div style={{ marginLeft: "70px" }}>
                     <progress
                       value={this.state.progress}
@@ -532,6 +649,7 @@ class NewsBoard extends Component {
 //check props nhận vào
 NewsBoard.propTypes = {
   classes: propTypes.object,
+  history: propTypes.object,
   newsList: propTypes.array,
   likeList: propTypes.array,
   newsActionsCreators: propTypes.shape({
@@ -575,6 +693,7 @@ const mapDispatchToProps = (dispatch) => {
     newsActionsCreators: bindActionCreators(newsActions, dispatch),
     uiActionsCreators: bindActionCreators(uiActions, dispatch),
     modalActionsCreators: bindActionCreators(modalActions, dispatch),
+    friendActionsCreators: bindActionCreators(friendActions, dispatch),
   };
 };
 
@@ -588,4 +707,4 @@ export default compose(
   withStyles(styles),
   connect(mapStateToProps, mapDispatchToProps),
   withReduxForm
-)(NewsBoard);
+)(withRouter(NewsBoard));

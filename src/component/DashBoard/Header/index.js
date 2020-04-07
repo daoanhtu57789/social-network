@@ -161,14 +161,15 @@ class Header extends Component {
               >
                 <Avatar
                   src={currentUser.avatar}
-                  style={{ marginBottom: "5px" }}
+                  style={{ marginBottom: "10px" }}
                 />
-                <Typography style={{ fontSize: "17px" }}>
+                <Link to="/home/profile" style={{ marginLeft: "5px" }} className={classes.link}>
                   {this.renderNameUser(currentUser.nameUser)}
-                </Typography>
+                </Link>
               </IconButton>
             </div>
-            <div className={classes.grow} />
+            
+            <div className={classes.grow} style={{marginLeft:'15px'}} />
             <div>
               <IconButton color="inherit">
                 <Badge color="secondary">

@@ -62,15 +62,25 @@ class News extends Component {
     onClickEdit();
     this.handleClose();
   };
+
   render() {
     dayjs.extend(relativeTime);
-    const { classes, news, onClickLike, onClickUnLike, color } = this.props;
+    const {
+      classes,
+      news,
+      onClickLike,
+      onClickUnLike,
+      color,
+      onOpenFriendProfile,
+    } = this.props;
     const { expanded } = this.state;
 
     return (
       <Card className={classes.root}>
         <CardHeader
-          avatar={<Avatar src={news.avatar} />}
+          avatar={
+            <Avatar src={news.avatar} onClick={() => onOpenFriendProfile()} />
+          }
           action={
             news.email === localStorage.getItem("user") ? (
               <div>
@@ -110,7 +120,9 @@ class News extends Component {
               <div></div>
             )
           }
-          title={news.nameUser}
+          title={
+            <strong onClick={() => onOpenFriendProfile()}>{news.nameUser}</strong>
+          }
           subheader={dayjs(news.createdAt).fromNow()}
         />
 

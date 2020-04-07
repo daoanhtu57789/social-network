@@ -12,6 +12,7 @@ class NewsList extends Component {
       onClickUnLike,
       onClickDelete,
       onClickEdit,
+      onOpenFriendProfile,
     } = this.props;
 
     return (
@@ -29,6 +30,7 @@ class NewsList extends Component {
               color={color}
               key={index}
               news={news}
+              onOpenFriendProfile={() => onOpenFriendProfile(news)}
               onClickLike={() => onClickLike(news)}
               onClickUnLike={() => onClickUnLike(news)}
               onClickDelete={() => onClickDelete(news)}

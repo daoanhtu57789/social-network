@@ -2,6 +2,7 @@ import Login from './../container/Login/index';
 import Signup from './../container/Signup/index';
 import NewsBoard from './../container/NewsBoard/index';
 import Profile from './../container/Profile/index';
+import Friend from './../container/Friend/index';
 
 export const PAGE_ROUTES = [
     {
@@ -13,7 +14,13 @@ export const PAGE_ROUTES = [
         path:'/home/profile',
         component: Profile,
         exact : true,
+    },
+    {
+        path:'/home/friend',
+        component: Friend,
+        exact : true,
     }
+
 ];
 
 

@@ -1,23 +1,20 @@
-const styles = theme => ({
-  root: {
-    maxWidth: 600,
-    marginTop: 40
-  },
+const styles = (theme) => ({
   cardContent: {
-    maxWidth: 600,
-    marginTop: 70
+    width: "500px",
+    margin: "4em auto 1em auto",
+
   },
-  button:{
-    margin : '0 5px 10px 5px'
+  button: {
+    margin: "0 5px 10px 5px",
   },
   input: {
-    display: 'none',
+    display: "none",
   },
   textField: {
-    width: "100%"
+    width: "100%",
   },
   progress: {
-    position: 'absolute'
+    position: "absolute",
   },
 });
 

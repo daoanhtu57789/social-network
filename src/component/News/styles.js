@@ -1,25 +1,22 @@
-const styles = theme => ({
+const styles = (theme) => ({
   root: {
-    maxWidth: 600,
-    marginTop: 20
+    width: "500px",
+    margin : '1em auto'
   },
-  // media: {
-  //   height: 0,
-  //   paddingTop: "56.25%" // 16:9
-  // },
+
   expand: {
     transform: "rotate(0deg)",
     marginLeft: "auto",
     transition: theme.transitions.create("transform", {
-      duration: theme.transitions.duration.shortest
-    })
+      duration: theme.transitions.duration.shortest,
+    }),
   },
   expandOpen: {
-    transform: "rotate(180deg)"
+    transform: "rotate(180deg)",
   },
   avatar: {
-    backgroundColor: "red"
-  }
+    backgroundColor: "red",
+  },
 });
 
 export default styles;

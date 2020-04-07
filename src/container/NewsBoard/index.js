@@ -98,6 +98,7 @@ class NewsBoard extends Component {
                 likeId: doc.id,
                 email: doc.data().email,
                 newsId: doc.data().newsId,
+                emailFriend: doc.data().emailFriend,
               });
             });
             fetchLikeSuccess(likeList);
@@ -118,6 +119,7 @@ class NewsBoard extends Component {
     const like = {
       newsId: data.newsId,
       email: localStorage.getItem("user"),
+      emailFriend: data.email,
     };
     fire
       .firestore()
@@ -317,7 +319,45 @@ class NewsBoard extends Component {
   onOpenFriendProfile = (dataFriend) => {
     const { history } = this.props;
     if (dataFriend.email === localStorage.getItem("user")) {
-      history.push("/home/profile");
+      const { friendActionsCreators, newsActionsCreators } = this.props;
+      const {
+        fetchFriendProfileSuccess,
+        fetchFriendProfileFailed,
+      } = friendActionsCreators;
+      const {
+        fetchNewsSuccess,
+        fetchNewsFailed,
+        fetchLikeSuccess,
+        fetchLikeFailed,
+      } = newsActionsCreators;
+      fire
+        .firestore()
+        .collection("user")
+        .where("email", "==", dataFriend.email)
+        .get()
+        .then((data) => {
+          data.forEach((doc) => {
+            localStorage.setItem("friend", doc.data().email);
+            let currentFriend = {
+              friendId: doc.id,
+              email: doc.data().email,
+              gender: doc.data().gender,
+              nameFriend: doc.data().nameUser,
+              date: doc.data().date,
+              avatar: doc.data().avatar,
+            };
+            fetchFriendProfileSuccess(currentFriend);
+          });
+          fetchNewsSuccess(null, localStorage.getItem("friend"));
+          fetchLikeSuccess(null, localStorage.getItem("friend"));
+          history.push("/home/profile");
+        })
+        .catch((error) => {
+          fetchNewsFailed(error);
+          fetchLikeFailed(error);
+          fetchFriendProfileFailed(error);
+          console.error(error);
+        });
     } else {
       const { friendActionsCreators, newsActionsCreators } = this.props;
       const {
@@ -349,82 +389,15 @@ class NewsBoard extends Component {
             fetchFriendProfileSuccess(currentFriend);
           });
           fetchNewsSuccess(null, localStorage.getItem("friend"));
-          fire
-            .firestore()
-            .collection("likes")
-            .where("email", "==", localStorage.getItem("user"))
-            .get()
-            .then((data) => {
-              const likeList = [];
-              data.forEach((doc) => {
-                likeList.push({
-                  likeId: doc.id,
-                  email: doc.data().email,
-                  newsId: doc.data().newsId,
-                });
-              });
-              fetchLikeSuccess(likeList);
-              history.push("/home/friend");
-            })
-            .catch((err) => {
-              fetchLikeFailed(err);
-            });
+          fetchLikeSuccess(null, localStorage.getItem("friend"));
+          history.push("/home/friend");
         })
         .catch((error) => {
+          fetchNewsFailed(error);
+          fetchLikeFailed(error);
           fetchFriendProfileFailed(error);
           console.error(error);
         });
-      // fire
-      //   .firestore()
-      //   .collection("news")
-      //   .orderBy("createdAt", "desc")
-      //   .get()
-      //   .then((data) => {
-      //     // let news = [];
-      //     // data.forEach((doc) => {
-      //     //   if (doc.data().email === dataFriend.email) {
-      //     //     news.push({
-      //     //       newsId: doc.id,
-      //     //       email: doc.data().email,
-      //     //       nameUser: doc.data().nameUser,
-      //     //       image: doc.data().image,
-      //     //       content: doc.data().content,
-      //     //       createdAt: doc.data().createdAt,
-      //     //       shareCount: doc.data().shareCount,
-      //     //       likeCount: doc.data().likeCount,
-      //     //       commentCount: doc.data().commentCount,
-      //     //       avatar: doc.data().avatar,
-      //     //       nameImage: doc.data().nameImage,
-      //     //     });
-      //     //   }
-      //     // });
-      //     fetchNewsSuccess(,);
-      //     //lấy dữ liệu trên firebase có database là likes
-      //     fire
-      //       .firestore()
-      //       .collection("likes")
-      //       .where("email", "==", localStorage.getItem("user"))
-      //       .get()
-      //       .then((data) => {
-      //         const likeList = [];
-      //         data.forEach((doc) => {
-      //           likeList.push({
-      //             likeId: doc.id,
-      //             email: doc.data().email,
-      //             newsId: doc.data().newsId,
-      //           });
-      //         });
-      //         fetchLikeSuccess(likeList);
-      //         history.push("/home/friend");
-      //       })
-      //       .catch((err) => {
-      //         fetchLikeFailed(err);
-      //       });
-      //   })
-      //   .catch((err) => {
-      //     console.log(err);
-      //     fetchNewsFailed(err);
-      //   });
     }
   };
   renderNewsList = () => {
@@ -498,7 +471,7 @@ class NewsBoard extends Component {
                 shareCount: 0,
                 likeCount: 0,
                 commentCount: 0,
-                content: data.content ? data.connect : " ",
+                content: data.content ? data.content : " ",
                 avatar: currentUser.avatar,
                 nameImage: image.name,
               };

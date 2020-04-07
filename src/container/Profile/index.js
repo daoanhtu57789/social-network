@@ -17,10 +17,14 @@ import IconButton from "@material-ui/core/IconButton";
 import PhotoCamera from "@material-ui/icons/PhotoCamera";
 import VisibilityIcon from "@material-ui/icons/Visibility";
 import VisibilityOffIcon from "@material-ui/icons/VisibilityOff";
+//componet
+import NewsList from "../../component/NewsList/index";
 //redux
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import * as userActions from "./../../actions/user";
+import * as newsActions from "./../../actions/news";
+import * as friendActions from "./../../actions/friend";
 import { compose } from "redux";
 //firebase
 import fire from "./../../config/Fire";
@@ -81,7 +85,7 @@ class Profile extends Component {
     });
   };
 
-  UNSAFE_componentWillMount() {
+  componentDidMount() {
     fire
       .firestore()
       .collection("user")
@@ -97,8 +101,107 @@ class Profile extends Component {
           });
         });
       });
-  }
+    const { friendActionsCreators, newsActionsCreators, newsList } = this.props;
+    const {
+      fetchFriendProfileSuccess,
+      fetchFriendProfileFailed,
+    } = friendActionsCreators;
+    const {
+      fetchNewsSuccess,
+      fetchNewsFailed,
+      fetchLikeSuccess,
+      fetchLikeFailed,
+    } = newsActionsCreators;
+    if (newsList.length > 0) {
+      fire
+        .firestore()
+        .collection("user")
+        .where("email", "==", localStorage.getItem("user"))
+        .get()
+        .then((data) => {
+          data.forEach((doc) => {
+            localStorage.setItem("friend", doc.data().email);
+            let currentFriend = {
+              friendId: doc.id,
+              email: doc.data().email,
+              gender: doc.data().gender,
+              nameFriend: doc.data().nameUser,
+              date: doc.data().date,
+              avatar: doc.data().avatar,
+            };
+            fetchFriendProfileSuccess(currentFriend);
+          });
+          fetchNewsSuccess(null, localStorage.getItem("user"));
+          fetchLikeSuccess(null, localStorage.getItem("user"));
+        })
+        .catch((error) => {
+          fetchNewsFailed(error);
+          fetchLikeFailed(error);
+          fetchFriendProfileFailed(error);
+          console.error(error);
+        });
+    } else {
+      const { newsActionsCreators } = this.props;
+      const {
+        fetchNewsSuccess,
+        fetchNewsFailed,
+        fetchLikeSuccess,
+        fetchLikeFailed,
+      } = newsActionsCreators;
 
+      fire
+        .firestore()
+        .collection("news")
+        .orderBy("createdAt", "desc")
+        .get()
+        .then((data) => {
+          let news = [];
+          data.forEach((doc) => {
+            if(doc.data().email === localStorage.getItem('user')){
+              news.push({
+                newsId: doc.id,
+                email: doc.data().email,
+                nameUser: doc.data().nameUser,
+                image: doc.data().image,
+                content: doc.data().content,
+                createdAt: doc.data().createdAt,
+                shareCount: doc.data().shareCount,
+                likeCount: doc.data().likeCount,
+                commentCount: doc.data().commentCount,
+                avatar: doc.data().avatar,
+                nameImage: doc.data().nameImage,
+              });
+            }
+          });
+          fetchNewsSuccess(news);
+          //lấy dữ liệu trên firebase có database là likes
+          fire
+            .firestore()
+            .collection("likes")
+            .where("email", "==", localStorage.getItem("user"))
+            .get()
+            .then((data) => {
+              const likeList = [];
+              data.forEach((doc) => {
+                likeList.push({
+                  likeId: doc.id,
+                  email: doc.data().email,
+                  newsId: doc.data().newsId,
+                  emailFriend: doc.data().emailFriend,
+                });
+              });
+              fetchLikeSuccess(likeList);
+            })
+            .catch((err) => {
+              fetchLikeFailed(err);
+            });
+        })
+        .catch((err) => {
+          console.log(err);
+          fetchNewsFailed(err);
+        });
+    }
+  }
   //update ảnh
   onUpdateAvatar = () => {
     const { currentUser, userActionsCreators } = this.props;
@@ -295,203 +398,312 @@ class Profile extends Component {
         console.error(err);
       });
   };
+  //like
+  onClickLike = (data) => {
+    const { newsActionsCreators } = this.props;
+    const { likeNewsSuccess, likeNewsFailed } = newsActionsCreators;
+    const like = {
+      newsId: data.newsId,
+      email: localStorage.getItem("user"),
+      emailFriend: data.email,
+    };
+    fire
+      .firestore()
+      .collection("likes")
+      .add(like)
+      .then((doc) => {
+        //lấy dữ liệu danh sách đã like
+        doc
+          .get()
+          .then((doc) => {
+            likeNewsSuccess({ likeId: doc.id, ...like });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+
+        fire
+          .firestore()
+          .collection("news")
+          .doc(`/${data.newsId}`)
+          .update({
+            //update cái gì thì cho cái đó vào
+            likeCount: data.likeCount + 1,
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      })
+      .catch((err) => {
+        likeNewsFailed(err);
+        console.log(err);
+      });
+  };
+  //unlike
+  onClickUnLike = (data) => {
+    const { newsActionsCreators, likeList } = this.props;
+    const { unlikeNewsSuccess, unlikeNewsFailed } = newsActionsCreators;
+
+    likeList.forEach((like) => {
+      if (like.newsId === data.newsId) {
+        //thêm vào database likes
+        fire
+          .firestore()
+          .collection("likes")
+          .doc(`${like.likeId}`)
+          .delete()
+          .then((doc) => {
+            unlikeNewsSuccess(like);
+
+            fire
+              .firestore()
+              .collection("news")
+              .doc(`/${data.newsId}`)
+              .update({
+                //update cái gì thì cho cái đó vào
+                likeCount: data.likeCount - 1,
+              })
+              .catch((err) => {
+                console.log(err);
+              });
+          })
+          .catch((err) => {
+            unlikeNewsFailed(err);
+            console.log(err);
+          });
+      }
+    });
+  };
+  //các bài viết của bản thân
+  renderNewsList = () => {
+    const { newsList, likeList } = this.props;
+    let xhtml = null;
+    if (newsList.length > 0) {
+      xhtml = (
+        <NewsList
+          newsList={newsList}
+          likeList={likeList}
+          onClickLike={this.onClickLike}
+          onClickUnLike={this.onClickUnLike}
+        />
+      );
+    } else {
+      xhtml = (
+        <Grid container spacing={2} style={{ paddingTop: "10px" }}>
+          <Grid item md={5} xs={12}></Grid>
+          <Grid item md={4} xs={12}>
+            <h3>Loading...</h3>
+          </Grid>
+          <Grid item md={3} xs={12}></Grid>
+        </Grid>
+      );
+    }
+    return xhtml;
+  };
 
   render() {
     const { classes, currentUser } = this.props;
     return (
       <Grid container spacing={2} style={{ marginTop: "70px" }}>
         <Grid item md={2} xs={12}></Grid>
-        <Grid item md={3} xs={12}>
-          <h2 style={{ textAlign: "center" }}>
-            <strong>Ảnh Đại Diện</strong>
-          </h2>
-          <Container fixed>
-            <Avatar
-              src={currentUser.avatar}
-              style={{ width: "100%", height: "100%" }}
-            />
+        <Grid item md={8} xs={12}>
+          <Grid container>
+            <Grid item md={5} xs={12}>
+              <h2 style={{ textAlign: "center" }}>
+                <strong>Ảnh Đại Diện</strong>
+              </h2>
+              <Container fixed>
+                <Avatar
+                  src={currentUser.avatar}
+                  style={{ width: "100%", height: "100%" }}
+                />
 
-            <Grid container>
-              <Grid item md={3} xs={6}></Grid>
-              <Grid item md={2} xs={6}>
-                <div style={{ marginLeft: "40px" }}>
-                  <input
-                    className={classes.input}
-                    id="icon-button-file"
-                    type="file"
-                    onChange={this.handleChangeFile}
-                  />
-                  <label htmlFor="icon-button-file">
-                    <IconButton
-                      color="primary"
-                      aria-label="upload picture"
-                      component="span"
-                    >
-                      <PhotoCamera fontSize="large" />
-                    </IconButton>
-                  </label>
-                </div>
+                <Grid container>
+                  <Grid item md={3} xs={6}></Grid>
+                  <Grid item md={2} xs={6}>
+                    <div style={{ marginLeft: "40px" }}>
+                      <input
+                        className={classes.input}
+                        id="icon-button-file"
+                        type="file"
+                        onChange={this.handleChangeFile}
+                      />
+                      <label htmlFor="icon-button-file">
+                        <IconButton
+                          color="primary"
+                          aria-label="upload picture"
+                          component="span"
+                        >
+                          <PhotoCamera fontSize="large" />
+                        </IconButton>
+                      </label>
+                    </div>
 
-                <div>
-                  <progress
-                    value={this.state.progress}
-                    max="100"
-                    style={{ height: "20px" }}
-                  />
-                </div>
-              </Grid>
-              <Grid item md={1} xs={6}></Grid>
+                    <div>
+                      <progress
+                        value={this.state.progress}
+                        max="100"
+                        style={{ height: "20px" }}
+                      />
+                    </div>
+                  </Grid>
+                  <Grid item md={1} xs={6}></Grid>
+                </Grid>
+
+                <Button
+                  variant="contained"
+                  color="primary"
+                  className={classes.button}
+                  style={{ width: "100%", marginLeft: "auto" }}
+                  size="small"
+                  type="button"
+                  onClick={this.onUpdateAvatar}
+                >
+                  <CloudUploadIcon fontSize="small" />
+                  Lưu
+                </Button>
+              </Container>
             </Grid>
-
-            <Button
-              variant="contained"
-              color="primary"
-              className={classes.button}
-              style={{ width: "100%", marginLeft: "auto" }}
-              size="small"
-              type="button"
-              onClick={this.onUpdateAvatar}
-            >
-              <CloudUploadIcon fontSize="small" />
-              Lưu
-            </Button>
-          </Container>
-        </Grid>
-        <Grid item md={5} xs={12}>
-          <h2 style={{ textAlign: "center" }}>
-            <strong>Thông Tin</strong>
-          </h2>
-          {currentUser.nameUser.length > 0 ? (
-            <Fragment>
-              <TextField
-                id="nameUser"
-                name="nameUser"
-                type="text"
-                label="Name"
-                defaultValue={currentUser.nameUser}
-                className={classes.textField}
-                fullWidth
-                onChange={this.handleChangeContent}
-              />
-              <TextField
-                id="date"
-                name="date"
-                type="date"
-                label="Birthday"
-                className={classes.textField}
-                fullWidth
-                defaultValue={currentUser.date}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                onChange={this.handleChangeContent}
-              />
-              <Grid container>
-                <Grid item sm>
-                  {this.state.checkednam ? (
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          name="nam"
-                          onChange={this.handleChange}
-                          color="primary"
-                        />
-                      }
-                      label="Nam"
-                    />
-                  ) : (
-                    <FormControlLabel
-                      disabled
-                      control={
-                        <Checkbox
-                          name="nam"
-                          onChange={this.handleChange}
-                          color="primary"
-                        />
-                      }
-                      label="Nam"
-                    />
-                  )}
-                </Grid>
-                <Grid item sm>
-                  <WcIcon fontSize="large" />
-                </Grid>
-                <Grid item sm>
-                  {this.state.checkednu ? (
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          name="nu"
-                          onChange={this.handleChange}
-                          color="primary"
-                        />
-                      }
-                      label="Nữ"
-                    />
-                  ) : (
-                    <FormControlLabel
-                      disabled
-                      control={
-                        <Checkbox
-                          name="nu"
-                          onChange={this.handleChange}
-                          color="primary"
-                        />
-                      }
-                      label="Nữ"
-                    />
-                  )}
-                </Grid>
-              </Grid>
-
-              <Grid container>
-                <Grid item md={5} xs={6}>
+            <Grid item md={7} xs={12}>
+              <h2 style={{ textAlign: "center" }}>
+                <strong>Thông Tin</strong>
+              </h2>
+              {currentUser.nameUser.length > 0 ? (
+                <Fragment>
                   <TextField
-                    id="password"
-                    name="password"
-                    type={this.state.showPassword ? "text" : "password"}
-                    label="Password"
-                    defaultValue={currentUser.password}
+                    id="nameUser"
+                    name="nameUser"
+                    type="text"
+                    label="Name"
+                    defaultValue={currentUser.nameUser}
                     className={classes.textField}
                     fullWidth
                     onChange={this.handleChangeContent}
                   />
-                </Grid>
-                <Grid item md={1} xs={6}>
+                  <TextField
+                    id="date"
+                    name="date"
+                    type="date"
+                    label="Birthday"
+                    className={classes.textField}
+                    fullWidth
+                    defaultValue={currentUser.date}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                    onChange={this.handleChangeContent}
+                  />
+                  <Grid container>
+                    <Grid item sm>
+                      {this.state.checkednam ? (
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              name="nam"
+                              onChange={this.handleChange}
+                              color="primary"
+                            />
+                          }
+                          label="Nam"
+                        />
+                      ) : (
+                        <FormControlLabel
+                          disabled
+                          control={
+                            <Checkbox
+                              name="nam"
+                              onChange={this.handleChange}
+                              color="primary"
+                            />
+                          }
+                          label="Nam"
+                        />
+                      )}
+                    </Grid>
+                    <Grid item sm>
+                      <WcIcon fontSize="large" />
+                    </Grid>
+                    <Grid item sm>
+                      {this.state.checkednu ? (
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              name="nu"
+                              onChange={this.handleChange}
+                              color="primary"
+                            />
+                          }
+                          label="Nữ"
+                        />
+                      ) : (
+                        <FormControlLabel
+                          disabled
+                          control={
+                            <Checkbox
+                              name="nu"
+                              onChange={this.handleChange}
+                              color="primary"
+                            />
+                          }
+                          label="Nữ"
+                        />
+                      )}
+                    </Grid>
+                  </Grid>
+
+                  <Grid container>
+                    <Grid item md={5} xs={6}>
+                      <TextField
+                        id="password"
+                        name="password"
+                        type={this.state.showPassword ? "text" : "password"}
+                        label="Password"
+                        defaultValue={currentUser.password}
+                        className={classes.textField}
+                        fullWidth
+                        onChange={this.handleChangeContent}
+                      />
+                    </Grid>
+                    <Grid item md={1} xs={6}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        type="button"
+                        className={classes.button}
+                        style={{ marginTop: "15px" }}
+                        onClick={() => {
+                          this.setState({
+                            showPassword: !this.state.showPassword,
+                          });
+                        }}
+                      >
+                        {this.state.showPassword ? (
+                          <VisibilityIcon fontSize="small" />
+                        ) : (
+                          <VisibilityOffIcon fontSize="small" />
+                        )}
+                      </Button>
+                    </Grid>
+                  </Grid>
+
                   <Button
                     variant="contained"
                     color="primary"
                     type="button"
+                    style={{ width: "100%", marginLeft: "auto" }}
                     className={classes.button}
-                    style={{ marginTop: "15px" }}
-                    onClick={() => {
-                      this.setState({ showPassword: !this.state.showPassword });
-                    }}
+                    onClick={this.handleUpdateUser}
                   >
-                    {this.state.showPassword ? (
-                      <VisibilityIcon fontSize="small" />
-                    ) : (
-                      <VisibilityOffIcon fontSize="small" />
-                    )}
+                    <CloudUploadIcon fontSize="small" />
+                    Lưu
                   </Button>
-                </Grid>
-              </Grid>
-
-              <Button
-                variant="contained"
-                color="primary"
-                type="button"
-                style={{ width: "100%", marginLeft: "auto" }}
-                className={classes.button}
-                onClick={this.handleUpdateUser}
-              >
-                <CloudUploadIcon fontSize="small" />
-                Lưu
-              </Button>
-            </Fragment>
-          ) : (
-            <strong>Loading...</strong>
-          )}
+                </Fragment>
+              ) : (
+                <strong>Loading...</strong>
+              )}
+            </Grid>
+          </Grid>
+          {this.renderNewsList()}
         </Grid>
         <Grid item md={2} xs={12}></Grid>
       </Grid>
@@ -501,12 +713,22 @@ class Profile extends Component {
 
 Profile.propTypes = {
   classes: propTypes.object,
+  newsList: propTypes.array,
+  likeList: propTypes.array,
   userActionsCreators: propTypes.shape({
     addAvatarUserSuccess: propTypes.func,
     addAvatarUserFailed: propTypes.func,
     updateUserSuccess: propTypes.func,
     updateUserFailed: propTypes.func,
-    fetchCurrentUser : propTypes.func
+    fetchCurrentUser: propTypes.func,
+  }),
+  newsActionsCreators: propTypes.shape({
+    fetchNewsSuccess: propTypes.func, //
+    fetchNewsFailed: propTypes.func, //
+    likeNewsSuccess: propTypes.func, //
+    likeNewsFailed: propTypes.func, //
+    unlikeNewsSuccess: propTypes.func, //
+    unlikeNewsFailed: propTypes.func, //
   }),
   handleSubmit: propTypes.func,
   invalid: propTypes.bool,
@@ -517,12 +739,16 @@ Profile.propTypes = {
 const mapStateToProps = (state) => {
   return {
     currentUser: state.user.currentUser,
+    newsList: state.news.newsList,
+    likeList: state.news.likeList,
   };
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
     userActionsCreators: bindActionCreators(userActions, dispatch),
+    newsActionsCreators: bindActionCreators(newsActions, dispatch),
+    friendActionsCreators: bindActionCreators(friendActions, dispatch),
   };
 };
 

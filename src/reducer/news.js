@@ -92,11 +92,20 @@ const reducer = (state = initialState, action) => {
 
     //lấy dữ liệu like
     case newsConstants.FETCH_LIKE_SUCCESS: {
-      const { data } = action.payload;
-      return {
-        ...state,
-        likeList: data,
-      };
+      const { data, email } = action.payload;
+      if (!email) {
+        return {
+          ...state,
+          likeList: data,
+        };
+      } else {
+        const likeList = state.likeList.filter((like) => like.emailFriend === email);
+
+        return {
+          ...state,
+          likeList: likeList,
+        };
+      }
     }
     case newsConstants.FETCH_LIKE_FAILED: {
       const { err } = action.payload;

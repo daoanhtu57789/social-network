@@ -76,11 +76,13 @@ export const updateNewsFailed = (err) => {
   };
 };
 //lấy dữ liệu like từ firebase
-export const fetchLikeSuccess = (data) => {
+//email mặc định là null nếu không truyền gì vào
+export const fetchLikeSuccess = (data,email=null) => {
   return {
     type: newsConstants.FETCH_LIKE_SUCCESS,
     payload: {
       data,
+      email
     },
   };
 };

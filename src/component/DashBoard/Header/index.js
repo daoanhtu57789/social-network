@@ -42,7 +42,6 @@ class Header extends Component {
     };
   }
   //Xoay icon đăng xuất khi click
-
   handleProfileMenuOpen = (event) => {
     this.setState({
       anchorEl: event.currentTarget,
@@ -50,7 +49,6 @@ class Header extends Component {
       expanded: true,
     });
   };
-
   handleMenuClose = () => {
     this.setState({
       anchorEl: null,
@@ -58,7 +56,6 @@ class Header extends Component {
       expanded: false,
     });
   };
-
   //logout
   handleLogout = () => {
     const { handleLogout, history } = this.props;
@@ -163,13 +160,17 @@ class Header extends Component {
                   src={currentUser.avatar}
                   style={{ marginBottom: "10px" }}
                 />
-                <Link to="/home/profile" style={{ marginLeft: "5px" }} className={classes.link}>
+                <Link
+                  to="/home/profile"
+                  style={{ marginLeft: "5px" }}
+                  className={classes.link}
+                >
                   {this.renderNameUser(currentUser.nameUser)}
                 </Link>
               </IconButton>
             </div>
-            
-            <div className={classes.grow} style={{marginLeft:'15px'}} />
+
+            <div className={classes.grow} style={{ marginLeft: "15px" }} />
             <div>
               <IconButton color="inherit">
                 <Badge color="secondary">

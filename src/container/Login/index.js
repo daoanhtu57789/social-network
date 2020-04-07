@@ -62,6 +62,7 @@ class Login extends Component {
                 likeId: doc.id,
                 email: doc.data().email,
                 newsId: doc.data().newsId,
+                emailFriend : doc.data().emailFriend
               });
             });
             fetchLikeSuccess(likeList);
@@ -128,6 +129,7 @@ class Login extends Component {
                   likeId: doc.id,
                   email: doc.data().email,
                   newsId: doc.data().newsId,
+                  emailFriend : doc.data().emailFriend
                 });
               });
               fetchLikeSuccess(likeList);

@@ -23,6 +23,7 @@ class Friend extends Component {
     const like = {
       newsId: data.newsId,
       email: localStorage.getItem("user"),
+      emailFriend : data.email
     };
     fire
       .firestore()

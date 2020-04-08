@@ -10,11 +10,15 @@ const styles = (theme) => ({
     width: "10em",
     height: "10em",
     margin: "-5em auto 0px auto",
-    border: "2px solid #CCCCCC"
+    border: "2px solid #CCCCCC",
   },
   nameFriend: {
     margin: "0.5em auto 1em auto",
     textAlign: "center",
+  },
+  infor: {
+    height: "56px",
+    lineHeight: "56px",
   },
 });
 

@@ -196,7 +196,7 @@ class Friend extends Component {
                   width: "500px",
                   border: "1px solid #CCCCCC",
                   height: "1px",
-                  margin: "auto",
+                  margin: "2em auto auto auto",
                 }}
               ></div>
               <Grid

@@ -37,7 +37,6 @@ export const addNewsFailed = (err) => {
     },
   };
 };
-
 //lấy dữ liệu từ firebase
 export const deleteNewsSuccess = (newsId) => {
   return {
@@ -47,7 +46,6 @@ export const deleteNewsSuccess = (newsId) => {
     },
   };
 };
-
 export const deleteNewsFailed = (err) => {
   return {
     type: newsConstants.DELETE_NEWS_FAILED,

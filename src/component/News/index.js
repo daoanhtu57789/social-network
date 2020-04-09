@@ -16,6 +16,7 @@ import Menu from "@material-ui/core/Menu";
 import DeleteIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
 import LockIcon from "@material-ui/icons/Lock";
+import SendIcon from "@material-ui/icons/Send";
 //css
 import { withStyles } from "@material-ui/core/styles";
 import styles from "./styles";
@@ -24,6 +25,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 //check dữ liệu nhận vào
 import propTypes from "prop-types";
+import { Grid, Button, InputBase } from "@material-ui/core";
 class News extends Component {
   state = {
     expanded: false,
@@ -55,12 +57,56 @@ class News extends Component {
     onClickDelete();
     this.handleClose();
   };
-
   //Sửa bài viết
   onClickEdit = () => {
     const { onClickEdit } = this.props;
     onClickEdit();
     this.handleClose();
+  };
+  //showComment
+  renderComment = () => {
+    const { expanded } = this.state;
+    const { classes } = this.props;
+    let xhtml = null;
+    if (expanded) {
+      xhtml = (
+        <CardContent>
+          <Grid
+            container
+            direction="column"
+            justify="flex-end"
+            alignItems="stretch"
+          >
+            <Grid item className={classes.line}></Grid>
+            <Grid item>
+              <Grid container style={{ margin: "10px 0 10px 0px" }}>
+                <Grid item md={1} xs={12} style={{ margin: "1.3em 0 0 0" }}>
+                  <Avatar src="https://firebasestorage.googleapis.com/v0/b/zero-social-43e41.appspot.com/o/corgi3.jpg?alt=media&token=c35329cc-43a5-4095-8265-8732f5f7f351" />
+                </Grid>
+                <Grid item md={11} xs={12} style={{ marginTop: " 12px" }}>
+                  <strong>__Đào</strong>
+                  <div className={classes.comment}>
+                    Ai cmt sẽ hiện ở đây theo thứ tự chỉ hiện tối da 10 cmt
+                  </div>
+                </Grid>
+              </Grid>
+            </Grid>
+            <Grid item style={{ height: "3em" }}>
+              <form>
+                <div className={classes.input}>
+                  {/* <TextField fullWidth name="input" type="text" /> */}
+                  <InputBase style={{ marginLeft: "0.3em", width: "24.1em" }} />
+                  <Button className={classes.button}>
+                    <SendIcon />
+                  </Button>
+                </div>
+              </form>
+            </Grid>
+          </Grid>
+        </CardContent>
+      );
+    }
+    return xhtml;
   };
 
   render() {
@@ -74,7 +120,6 @@ class News extends Component {
       onOpenFriendProfile,
     } = this.props;
     const { expanded } = this.state;
-
     return (
       <Card className={classes.root}>
         <CardHeader
@@ -121,7 +166,9 @@ class News extends Component {
             )
           }
           title={
-            <strong onClick={() => onOpenFriendProfile()}>{news.nameUser}</strong>
+            <strong onClick={() => onOpenFriendProfile()}>
+              {news.nameUser}
+            </strong>
           }
           subheader={dayjs(news.createdAt).fromNow()}
         />
@@ -170,6 +217,7 @@ class News extends Component {
             <ExpandMoreIcon />
           </IconButton>
         </CardActions>
+        {this.renderComment()}
       </Card>
     );
   }

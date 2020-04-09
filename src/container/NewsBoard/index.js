@@ -53,7 +53,7 @@ class NewsBoard extends Component {
     });
   };
   //////load trang
-  UNSAFE_componentWillMount() {
+  componentDidMount() {
     const { newsActionsCreators } = this.props;
     const {
       fetchNewsSuccess,
@@ -296,7 +296,10 @@ class NewsBoard extends Component {
   //thực hiện sửa
   handleEdit = (data) => {
     const { newsActionsCreators, modalActionsCreators } = this.props;
-    const { updateNewsSuccess, updateNewsFailed } = newsActionsCreators;
+    const {
+      updateNewsSuccess,
+      updateNewsFailed
+    } = newsActionsCreators;
     const { hideModal } = modalActionsCreators;
     fire
       .firestore()
@@ -305,15 +308,38 @@ class NewsBoard extends Component {
       .update({
         content: this.state.content,
       })
-      .then((doc) => {
-        updateNewsSuccess(this.state.content, data.newsId);
-
-        hideModal();
-      })
       .catch((err) => {
         console.log(err);
         updateNewsFailed(err);
       });
+
+    updateNewsSuccess(this.state.content, data.newsId);
+    // fire
+    //   .firestore()
+    //   .collection("news")
+    //   .orderBy("createdAt", "desc")
+    //   .get()
+    //   .then((data) => {
+    //     let news = [];
+    //     data.forEach((doc) => {
+    //       news.push({
+    //         newsId: doc.id,
+    //         email: doc.data().email,
+    //         nameUser: doc.data().nameUser,
+    //         image: doc.data().image,
+    //         content: doc.data().content,
+    //         createdAt: doc.data().createdAt,
+    //         shareCount: doc.data().shareCount,
+    //         likeCount: doc.data().likeCount,
+    //         commentCount: doc.data().commentCount,
+    //         avatar: doc.data().avatar,
+    //         nameImage: doc.data().nameImage,
+    //       });
+    //     });
+    //     fetchNewsSuccess(news);
+    //   });
+
+    hideModal();
   };
   //xem thông tin bạn bè
   onOpenFriendProfile = (dataFriend) => {

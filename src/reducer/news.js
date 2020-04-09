@@ -7,6 +7,36 @@ const initialState = {
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
+    case newsConstants.UPDATE_NEWS_SUCCESS: {
+      const { content, newsId } = action.payload;
+      const index = state.newsList.findIndex((news) => news.newsId === newsId);
+
+      if (index !== -1) {
+        let news = {};
+        state.newsList[index].content = content;
+        news = state.newsList[index];
+        let newsData = [
+          ...state.newsList.slice(0, index),
+          news,
+          ...state.newsList.slice(index + 1),
+        ];
+        return {
+          newsList: newsData,
+          ...state,
+        };
+      }
+
+      return {
+        ...state,
+      };
+    }
+    case newsConstants.UPDATE_NEWS_FAILED: {
+      const { err } = action.payload;
+      console.log(err);
+      return {
+        ...state,
+      };
+    }
     //lấy dữ liệu
     case newsConstants.FETCH_NEWS_SUCCESS: {
       const { data, email } = action.payload;
@@ -68,27 +98,6 @@ const reducer = (state = initialState, action) => {
     }
 
     //Sửa dữ liệu
-    case newsConstants.UPDATE_NEWS_SUCCESS: {
-      const { content, newsId } = action.payload;
-      const index = state.newsList.findIndex((news) => news.newsId === newsId);
-      if (index !== -1) {
-        state.newsList[index].content = content;
-        return {
-          ...state,
-        };
-      }
-
-      return {
-        ...state,
-      };
-    }
-    case newsConstants.UPDATE_NEWS_FAILED: {
-      const { err } = action.payload;
-      console.log(err);
-      return {
-        ...state,
-      };
-    }
 
     //lấy dữ liệu like
     case newsConstants.FETCH_LIKE_SUCCESS: {
@@ -99,7 +108,9 @@ const reducer = (state = initialState, action) => {
           likeList: data,
         };
       } else {
-        const likeList = state.likeList.filter((like) => like.emailFriend === email);
+        const likeList = state.likeList.filter(
+          (like) => like.emailFriend === email
+        );
 
         return {
           ...state,

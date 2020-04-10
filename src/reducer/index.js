@@ -5,6 +5,7 @@ import userReducer from "./user";
 import uiReducer from "./ui";
 import modalReducer from "./modal";
 import friendReducer from "./friend";
+import commentReducer from "./comment";
 import { reducer as formReducer } from "redux-form";
 const rootReducer = combineReducers({
   news: newsReducer,
@@ -12,6 +13,7 @@ const rootReducer = combineReducers({
   ui: uiReducer,
   modal: modalReducer,
   friend: friendReducer,
+  comment: commentReducer,
   //form
   form: formReducer,
 });

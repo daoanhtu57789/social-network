@@ -39,6 +39,12 @@ class News extends Component {
       isMenuOpen: true,
     });
   };
+  //bắt sự kiện khi nhập vào comment
+  handleChangeComment = (event) => {
+    this.setState({
+      [event.target.name]: event.target.value,
+    });
+  };
 
   handleClose = () => {
     this.setState({
@@ -47,9 +53,11 @@ class News extends Component {
     });
   };
   handleExpandClick = () => {
+    const { fetchComment } = this.props;
     this.setState({
       expanded: !this.state.expanded,
     });
+    fetchComment();
   };
   //Xóa bài viết
   onClickDelete = () => {
@@ -63,10 +71,19 @@ class News extends Component {
     onClickEdit();
     this.handleClose();
   };
+  //function lấy 6 kí tự đầu của tên
+  renderNameUser = (name) => {
+    var newName = "";
+    var arrayName = name.split(" ");
+    newName = arrayName[0];
+    return newName;
+  };
+
   //showComment
   renderComment = () => {
+    dayjs.extend(relativeTime);
     const { expanded } = this.state;
-    const { classes } = this.props;
+    const { classes, sendComment, news, commentList } = this.props;
     let xhtml = null;
     if (expanded) {
       xhtml = (
@@ -79,28 +96,55 @@ class News extends Component {
           >
             <Grid item className={classes.line}></Grid>
             <Grid item>
-              <Grid container style={{ margin: "10px 0 10px 0px" }}>
-                <Grid item md={1} xs={12} style={{ margin: "1.3em 0 0 0" }}>
-                  <Avatar src="https://firebasestorage.googleapis.com/v0/b/zero-social-43e41.appspot.com/o/corgi3.jpg?alt=media&token=c35329cc-43a5-4095-8265-8732f5f7f351" />
-                </Grid>
-                <Grid item md={11} xs={12} style={{ marginTop: " 12px" }}>
-                  <strong>__Đào</strong>
-                  <div className={classes.comment}>
-                    Ai cmt sẽ hiện ở đây theo thứ tự chỉ hiện tối da 10 cmt
-                  </div>
-                </Grid>
-              </Grid>
+              <strong>Bình Luận</strong>
             </Grid>
+            {commentList.length > 0
+              ? commentList.map((comment,index) => {
+                  return (
+                    <Grid item key={index}>
+                      <Grid container style={{ margin: "10px 0 10px 0px" }}>
+                        <Grid
+                          item
+                          md={1}
+                          xs={12}
+                          style={{ margin: "1.3em 0 0 0" }}
+                        >
+                          <Avatar src={comment.avatar} />
+                        </Grid>
+                        <Grid
+                          item
+                          md={11}
+                          xs={12}
+                          style={{ marginTop: " 12px" }}
+                        >
+                          <strong>{this.renderNameUser(comment.commentUserName)}</strong>
+                          <strong style={{marginLeft:'20em'}}>{dayjs(comment.createdAt).fromNow()}</strong>
+                          <div className={classes.comment}>
+                            {comment.comment}
+                          </div>
+                        </Grid>
+                      </Grid>
+                    </Grid>
+                  );
+                })
+              : ""}
             <Grid item style={{ height: "3em" }}>
-              <form>
-                <div className={classes.input}>
-                  {/* <TextField fullWidth name="input" type="text" /> */}
-                  <InputBase style={{ marginLeft: "0.3em", width: "24.1em" }} />
-                  <Button className={classes.button}>
-                    <SendIcon />
-                  </Button>
-                </div>
-              </form>
+              <div className={classes.input}>
+                <InputBase
+                  multiline
+                  id="comment"
+                  type="text"
+                  name="comment"
+                  onChange={this.handleChangeComment}
+                  style={{ margin: "0 0 0.3em 0.3em", width: "24.1em" }}
+                />
+                <Button className={classes.button}>
+                  <SendIcon
+                    color="primary"
+                    onClick={() => sendComment(this.state.comment, news)}
+                  />
+                </Button>
+              </div>
             </Grid>
           </Grid>
         </CardContent>
@@ -210,7 +254,7 @@ class News extends Component {
             className={clsx(classes.expand, {
               [classes.expandOpen]: expanded,
             })}
-            onClick={() => this.handleExpandClick()}
+            onClick={() => this.handleExpandClick(news)}
             aria-expanded={expanded}
             aria-label="show more"
           >
@@ -231,6 +275,7 @@ News.propTypes = {
   color: propTypes.string,
   onClickDelete: propTypes.func,
   onClickEdit: propTypes.func,
+  sendComment: propTypes.func,
 };
 
 export default withStyles(styles)(News);

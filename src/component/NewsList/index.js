@@ -13,6 +13,9 @@ class NewsList extends Component {
       onClickDelete,
       onClickEdit,
       onOpenFriendProfile,
+      sendComment,
+      fetchComment,
+      commentList
     } = this.props;
 
     return (
@@ -35,6 +38,9 @@ class NewsList extends Component {
               onClickUnLike={() => onClickUnLike(news)}
               onClickDelete={() => onClickDelete(news)}
               onClickEdit={() => onClickEdit(news)}
+              sendComment={(comment,news) => sendComment(comment,news)}
+              fetchComment={() => fetchComment(news)}
+              commentList = {commentList}
             />
           );
         })}
@@ -50,6 +56,7 @@ NewsList.propTypes = {
   onClickUnLike: propTypes.func,
   onClickDelete: propTypes.func,
   onClickEdit: propTypes.func,
+  fetchComment : propTypes.func
 };
 
 export default NewsList;

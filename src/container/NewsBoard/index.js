@@ -23,6 +23,7 @@ import * as newsActions from "./../../actions/news";
 import * as uiActions from "./../../actions/ui";
 import * as modalActions from "./../../actions/modal";
 import * as friendActions from "./../../actions/friend";
+import * as commentActions from "./../../actions/comment";
 //firebase
 import fire from "./../../config/Fire";
 //redux-form
@@ -296,10 +297,7 @@ class NewsBoard extends Component {
   //thực hiện sửa
   handleEdit = (data) => {
     const { newsActionsCreators, modalActionsCreators } = this.props;
-    const {
-      updateNewsSuccess,
-      updateNewsFailed
-    } = newsActionsCreators;
+    const { updateNewsSuccess, updateNewsFailed } = newsActionsCreators;
     const { hideModal } = modalActionsCreators;
     fire
       .firestore()
@@ -426,12 +424,66 @@ class NewsBoard extends Component {
         });
     }
   };
+  //xử lý comment
+  sendComment = (comment, news) => {
+    const { currentUser, commentActionsCreators } = this.props;
+    const { addCommentSuccess, addCommentFailed } = commentActionsCreators;
+    let newComment = {
+      commentEmail: localStorage.getItem("user"),
+      comment: comment,
+      commentUserName: currentUser.nameUser,
+      commentNewsId: news.newsId,
+      createdAt: new Date().toISOString(),
+      avatar: currentUser.avatar,
+    };
+    fire
+      .firestore()
+      .collection("comment")
+      .add(newComment)
+      .then((doc) => {
+        addCommentSuccess({ commentId: doc.id, ...newComment });
+      })
+      .catch((error) => {
+        console.error(error);
+        addCommentFailed(error);
+      });
+  };
+  //lấy dữ liệu comment
+  fetchComment = (data) => {
+    const { commentActionsCreators } = this.props;
+    const { fetchCommentSuccess, fetchCommentFailed } = commentActionsCreators;
+    fire
+      .firestore()
+      .collection("comment")
+      .where("commentNewsId", "==", data.newsId)
+      .get()
+      .then((data) => {
+        let commentList = [];
+        data.forEach((doc) => {
+          commentList.push({
+            commentId : doc.id,
+            commentEmail: doc.data().commentEmail,
+            comment: doc.data().comment,
+            commentUserName: doc.data().commentUserName,
+            commentNewsId: doc.data().commentNewsId,
+            createdAt: doc.data().createdAt,
+            avatar: doc.data().avatar,
+          });
+        });
+        fetchCommentSuccess(commentList);
+      })
+      .catch(error =>{
+        console.error(error);
+        fetchCommentFailed(error);
+      });
+  };
   renderNewsList = () => {
-    const { newsList, likeList } = this.props;
+    const { newsList, likeList, commentList } = this.props;
     let xhtml = null;
     if (newsList.length > 0) {
       xhtml = (
         <NewsList
+          fetchComment={this.fetchComment}
           newsList={newsList}
           likeList={likeList}
           onClickLike={this.onClickLike}
@@ -439,6 +491,8 @@ class NewsBoard extends Component {
           onClickDelete={this.onClickDelete}
           onClickEdit={this.onClickEdit}
           onOpenFriendProfile={this.onOpenFriendProfile}
+          sendComment={this.sendComment}
+          commentList={commentList}
         />
       );
     } else {
@@ -651,6 +705,7 @@ NewsBoard.propTypes = {
   history: propTypes.object,
   newsList: propTypes.array,
   likeList: propTypes.array,
+  commentList: propTypes.array,
   newsActionsCreators: propTypes.shape({
     fetchNewsSuccess: propTypes.func, //
     fetchNewsFailed: propTypes.func, //
@@ -677,6 +732,12 @@ NewsBoard.propTypes = {
     changeModal: propTypes.func,
   }),
   reset: propTypes.func,
+  commentActionsCreators: propTypes.shape({
+    addCommentSuccess: propTypes.func,
+    addCommentFailed: propTypes.func,
+    fetchCommentSuccess: propTypes.func,
+    fetchCommentFailed: propTypes.func,
+  }),
 };
 
 const mapStateToProps = (state) => {
@@ -684,6 +745,7 @@ const mapStateToProps = (state) => {
     newsList: state.news.newsList,
     currentUser: state.user.currentUser,
     likeList: state.news.likeList,
+    commentList: state.comment.commentList,
   };
 };
 
@@ -693,6 +755,7 @@ const mapDispatchToProps = (dispatch) => {
     uiActionsCreators: bindActionCreators(uiActions, dispatch),
     modalActionsCreators: bindActionCreators(modalActions, dispatch),
     friendActionsCreators: bindActionCreators(friendActions, dispatch),
+    commentActionsCreators: bindActionCreators(commentActions, dispatch),
   };
 };
 

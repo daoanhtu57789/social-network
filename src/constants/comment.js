@@ -1,0 +1,6 @@
+//lấy dữ liệu comment
+export const FETCH_COMMENT_SUCCESS = "FETCH_COMMENT_SUCCESS";
+export const FETCH_COMMENT_FAILED = "FETCH_COMMENT_FAILED";
+//thêm dữ liệu
+export const ADD_COMMENT_SUCCESS = "ADD_COMMENT_SUCCESS";
+export const ADD_COMMENT_FAILED = "ADD_COMMENT_FAILED";

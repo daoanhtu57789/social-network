@@ -25,7 +25,12 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 //check dữ liệu nhận vào
 import propTypes from "prop-types";
-import { Grid, Button, InputBase } from "@material-ui/core";
+import { Grid, Button } from "@material-ui/core";
+//redux-form
+import { Field, reduxForm } from "redux-form";
+import renderTextField from "./../../component/FormHelper/TextField/index";
+//redux
+import { compose } from "redux";
 class News extends Component {
   state = {
     expanded: false,
@@ -39,13 +44,6 @@ class News extends Component {
       isMenuOpen: true,
     });
   };
-  //bắt sự kiện khi nhập vào comment
-  handleChangeComment = (event) => {
-    this.setState({
-      [event.target.name]: event.target.value,
-    });
-  };
-
   handleClose = () => {
     this.setState({
       anchorEl: null,
@@ -79,11 +77,17 @@ class News extends Component {
     return newName;
   };
 
+  handleSubmit = (data) => {
+    const { sendComment, news, reset } = this.props;
+    sendComment(data.comment, news);
+    reset();
+  };
+
   //showComment
   renderComment = () => {
     dayjs.extend(relativeTime);
     const { expanded } = this.state;
-    const { classes, sendComment, news, commentList } = this.props;
+    const { classes, commentList, handleSubmit } = this.props;
     let xhtml = null;
     if (expanded) {
       xhtml = (
@@ -99,10 +103,10 @@ class News extends Component {
               <strong>Bình Luận</strong>
             </Grid>
             {commentList.length > 0
-              ? commentList.map((comment,index) => {
+              ? commentList.map((comment, index) => {
                   return (
                     <Grid item key={index}>
-                      <Grid container style={{ margin: "10px 0 10px 0px" }}>
+                      <Grid container style={{ margin: "0.3em 0em 0.3em 0em" }}>
                         <Grid
                           item
                           md={1}
@@ -117,10 +121,14 @@ class News extends Component {
                           xs={12}
                           style={{ marginTop: " 12px" }}
                         >
-                          <strong>{this.renderNameUser(comment.commentUserName)}</strong>
-                          <strong style={{marginLeft:'20em'}}>{dayjs(comment.createdAt).fromNow()}</strong>
+                          <strong>
+                            {this.renderNameUser(comment.commentUserName)}
+                          </strong>
+                          <strong style={{ marginLeft: "20em" }}>
+                            {dayjs(comment.createdAt).fromNow()}
+                          </strong>
                           <div className={classes.comment}>
-                            {comment.comment}
+                            <p className={classes.p}>{comment.comment}</p>
                           </div>
                         </Grid>
                       </Grid>
@@ -130,20 +138,26 @@ class News extends Component {
               : ""}
             <Grid item style={{ height: "3em" }}>
               <div className={classes.input}>
-                <InputBase
-                  multiline
-                  id="comment"
-                  type="text"
-                  name="comment"
-                  onChange={this.handleChangeComment}
-                  style={{ margin: "0 0 0.3em 0.3em", width: "24.1em" }}
-                />
-                <Button className={classes.button}>
-                  <SendIcon
-                    color="primary"
-                    onClick={() => sendComment(this.state.comment, news)}
+                <form onSubmit={handleSubmit(this.handleSubmit)}>
+                  <Field
+                    id="comment"
+                    name="comment"
+                    component={renderTextField}
+                    type="text"
+                    variant="outlined"
+                    className={classes.textField}
+                    placeholder="Bình Luận"
+                    multiline
+                    size="small"
                   />
-                </Button>
+                  <Button
+                    variant="contained"
+                    className={classes.button}
+                    type="submit"
+                  >
+                    <SendIcon color="primary" />
+                  </Button>
+                </form>
               </div>
             </Grid>
           </Grid>
@@ -168,7 +182,7 @@ class News extends Component {
       <Card className={classes.root}>
         <CardHeader
           avatar={
-            <Avatar src={news.avatar} onClick={() => onOpenFriendProfile()} />
+            <Avatar src={news.avatar} onClick={() => onOpenFriendProfile(news)} />
           }
           action={
             news.email === localStorage.getItem("user") ? (
@@ -210,7 +224,7 @@ class News extends Component {
             )
           }
           title={
-            <strong onClick={() => onOpenFriendProfile()}>
+            <strong onClick={() => onOpenFriendProfile(news)}>
               {news.nameUser}
             </strong>
           }
@@ -277,5 +291,10 @@ News.propTypes = {
   onClickEdit: propTypes.func,
   sendComment: propTypes.func,
 };
+//kết nối với redux-form
+const FORM_NAME = "TASK_MANAGEMENT";
+const withReduxForm = reduxForm({
+  form: FORM_NAME,
+});
 
-export default withStyles(styles)(News);
+export default compose(withStyles(styles), withReduxForm)(News);

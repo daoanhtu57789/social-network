@@ -452,27 +452,30 @@ class NewsBoard extends Component {
   fetchComment = (data) => {
     const { commentActionsCreators } = this.props;
     const { fetchCommentSuccess, fetchCommentFailed } = commentActionsCreators;
+    const {newsId} = data;
     fire
       .firestore()
       .collection("comment")
-      .where("commentNewsId", "==", data.newsId)
+      .orderBy("createdAt", "asc")
       .get()
       .then((data) => {
         let commentList = [];
         data.forEach((doc) => {
-          commentList.push({
-            commentId : doc.id,
-            commentEmail: doc.data().commentEmail,
-            comment: doc.data().comment,
-            commentUserName: doc.data().commentUserName,
-            commentNewsId: doc.data().commentNewsId,
-            createdAt: doc.data().createdAt,
-            avatar: doc.data().avatar,
-          });
+          if (doc.data().commentNewsId === newsId) {
+            commentList.push({
+              commentId: doc.id,
+              commentEmail: doc.data().commentEmail,
+              comment: doc.data().comment,
+              commentUserName: doc.data().commentUserName,
+              commentNewsId: doc.data().commentNewsId,
+              createdAt: doc.data().createdAt,
+              avatar: doc.data().avatar,
+            });
+          }
         });
         fetchCommentSuccess(commentList);
       })
-      .catch(error =>{
+      .catch((error) => {
         console.error(error);
         fetchCommentFailed(error);
       });

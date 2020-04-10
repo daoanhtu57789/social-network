@@ -17,11 +17,6 @@ const styles = (theme) => ({
   avatar: {
     backgroundColor: "red",
   },
-  input: {
-    width: "97%",
-    border: "2px solid #CCCCCC",
-    borderRadius: "25px",
-  },
   button: {
     backgroundColor: "#FFFFFF",
   },
@@ -29,14 +24,21 @@ const styles = (theme) => ({
     width: "97%",
     border: "2px solid #CCCCCC",
     borderRadius: "25px",
-    padding: "0.2em 0em",
-    margin: "0.3em 0em",
+    padding: "-0.5em 0em",
+    margin: "-0.2em 0em",
   },
   line: {
     border: "1px solid #CCCCCC",
     margin: " 0.5em 0em 1.5em -1.2em",
     width: "500px",
   },
+  textField: {
+    width: "80%",
+  },
+  p:{
+    padding:"0.7em 0em 0em 0.5em",
+    margin:"0px"
+  }
 });
 
 export default styles;

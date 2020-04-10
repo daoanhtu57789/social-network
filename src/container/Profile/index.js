@@ -25,6 +25,7 @@ import { bindActionCreators } from "redux";
 import * as userActions from "./../../actions/user";
 import * as newsActions from "./../../actions/news";
 import * as friendActions from "./../../actions/friend";
+import * as commentActions from "./../../actions/comment";
 import { compose } from "redux";
 //firebase
 import fire from "./../../config/Fire";
@@ -157,7 +158,7 @@ class Profile extends Component {
         .then((data) => {
           let news = [];
           data.forEach((doc) => {
-            if(doc.data().email === localStorage.getItem('user')){
+            if (doc.data().email === localStorage.getItem("user")) {
               news.push({
                 newsId: doc.id,
                 email: doc.data().email,
@@ -204,8 +205,14 @@ class Profile extends Component {
   }
   //update ảnh
   onUpdateAvatar = () => {
-    const { currentUser, userActionsCreators } = this.props;
+    const {
+      currentUser,
+      userActionsCreators,
+      commentList,
+      newsActionsCreators,
+    } = this.props;
     const { addAvatarUserSuccess, addAvatarUserFailed } = userActionsCreators;
+    const { fetchNewsSuccess, fetchNewsFailed } = newsActionsCreators;
     const { image } = this.state;
     //lấy dữ liệu trên firebase có database là videos
     if (image) {
@@ -261,6 +268,14 @@ class Profile extends Component {
                         addAvatarUserSuccess(currentUsers);
                       });
                     });
+                  //update lại ảnh của các comment
+                  commentList.forEach((comment) => {
+                    fire
+                      .firestore()
+                      .collection("comment")
+                      .doc(`${comment.commentId}`)
+                      .update({ avatar: link });
+                  });
                 })
                 .catch((err) => {
                   console.log(err);
@@ -278,6 +293,36 @@ class Profile extends Component {
                       .collection("news")
                       .doc(`${doc.id}`)
                       .update({ avatar: link })
+                      .then((doc) => {
+                        fire
+                          .firestore()
+                          .collection("news")
+                          .orderBy("createdAt", "desc")
+                          .get()
+                          .then((data) => {
+                            let news = [];
+                            data.forEach((doc) => {
+                              news.push({
+                                newsId: doc.id,
+                                email: doc.data().email,
+                                nameUser: doc.data().nameUser,
+                                image: doc.data().image,
+                                content: doc.data().content,
+                                createdAt: doc.data().createdAt,
+                                shareCount: doc.data().shareCount,
+                                likeCount: doc.data().likeCount,
+                                commentCount: doc.data().commentCount,
+                                avatar: doc.data().avatar,
+                                nameImage: doc.data().nameImage,
+                              });
+                            });
+                            fetchNewsSuccess(news);
+                          })
+                          .catch((error) => {
+                            console.error(error);
+                            fetchNewsFailed(error);
+                          });
+                      })
                       .catch((err) => {
                         console.error(err);
                       });
@@ -474,9 +519,65 @@ class Profile extends Component {
       }
     });
   };
+  //xử lý comment
+  sendComment = (comment, news) => {
+    const { currentUser, commentActionsCreators } = this.props;
+    const { addCommentSuccess, addCommentFailed } = commentActionsCreators;
+    let newComment = {
+      commentEmail: localStorage.getItem("user"),
+      comment: comment,
+      commentUserName: currentUser.nameUser,
+      commentNewsId: news.newsId,
+      createdAt: new Date().toISOString(),
+      avatar: currentUser.avatar,
+    };
+    fire
+      .firestore()
+      .collection("comment")
+      .add(newComment)
+      .then((doc) => {
+        addCommentSuccess({ commentId: doc.id, ...newComment });
+      })
+      .catch((error) => {
+        console.error(error);
+        addCommentFailed(error);
+      });
+  };
+  //lấy dữ liệu comment
+  fetchComment = (data) => {
+    const { commentActionsCreators } = this.props;
+    const { fetchCommentSuccess, fetchCommentFailed } = commentActionsCreators;
+    const { newsId } = data;
+    fire
+      .firestore()
+      .collection("comment")
+      .orderBy("createdAt", "asc")
+      .get()
+      .then((data) => {
+        let commentList = [];
+        data.forEach((doc) => {
+          if (doc.data().commentNewsId === newsId) {
+            commentList.push({
+              commentId: doc.id,
+              commentEmail: doc.data().commentEmail,
+              comment: doc.data().comment,
+              commentUserName: doc.data().commentUserName,
+              commentNewsId: doc.data().commentNewsId,
+              createdAt: doc.data().createdAt,
+              avatar: doc.data().avatar,
+            });
+          }
+        });
+        fetchCommentSuccess(commentList);
+      })
+      .catch((error) => {
+        console.error(error);
+        fetchCommentFailed(error);
+      });
+  };
   //các bài viết của bản thân
   renderNewsList = () => {
-    const { newsList, likeList } = this.props;
+    const { newsList, likeList, commentList } = this.props;
     let xhtml = null;
     if (newsList.length > 0) {
       xhtml = (
@@ -485,6 +586,9 @@ class Profile extends Component {
           likeList={likeList}
           onClickLike={this.onClickLike}
           onClickUnLike={this.onClickUnLike}
+          fetchComment={this.fetchComment}
+          sendComment={this.sendComment}
+          commentList={commentList}
         />
       );
     } else {
@@ -741,6 +845,7 @@ const mapStateToProps = (state) => {
     currentUser: state.user.currentUser,
     newsList: state.news.newsList,
     likeList: state.news.likeList,
+    commentList: state.comment.commentList,
   };
 };
 
@@ -749,6 +854,7 @@ const mapDispatchToProps = (dispatch) => {
     userActionsCreators: bindActionCreators(userActions, dispatch),
     newsActionsCreators: bindActionCreators(newsActions, dispatch),
     friendActionsCreators: bindActionCreators(friendActions, dispatch),
+    commentActionsCreators: bindActionCreators(commentActions, dispatch),
   };
 };
 
